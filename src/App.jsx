@@ -1,25 +1,60 @@
 import React, { useState, useEffect } from 'react';
 import TaskContainer from './components/TaskContainer';
 import CalendarView from './components/CalendarView';
+import NotificationToast from './components/NotificationToast';
+import { supabase } from './lib/supabaseClient';
 import './styles/ZenStyles.css';
-import { Wind, Moon, Sun, Bell } from 'lucide-react';
+import { Wind, Moon, Sun, Bell, Calendar as CalendarIcon, CloudSync, CloudOff } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 function App() {
-  const [tasks, setTasks] = useState(() => {
-    const saved = localStorage.getItem('zen-tasks');
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [tasks, setTasks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [syncStatus, setSyncStatus] = useState('synced'); // 'synced', 'syncing', 'error'
   const [selectedDate, setSelectedDate] = useState(null);
   const [activeView, setActiveView] = useState('tasks'); // 'tasks' or 'calendar'
+  const [activeNotification, setActiveNotification] = useState(null);
 
+  // Fetch tasks on mount
   useEffect(() => {
-    localStorage.setItem('zen-tasks', JSON.stringify(tasks));
+    const fetchTasks = async () => {
+      setLoading(true);
+      setSyncStatus('syncing');
+      try {
+        const { data, error } = await supabase
+          .from('tasks')
+          .select('*')
+          .order('id', { ascending: false });
+
+        if (error) throw error;
+        setTasks(data || []);
+        setSyncStatus('synced');
+      } catch (err) {
+        console.error("Error fetching tasks:", err);
+        setSyncStatus('error');
+        // Fallback to local storage if supabase fails
+        const saved = localStorage.getItem('zen-tasks');
+        if (saved) setTasks(JSON.parse(saved));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTasks();
+    // Expose for retry
+    window.refreshZenTasks = fetchTasks;
+  }, []);
+
+  // Save to LocalStorage as fallback
+  useEffect(() => {
+    if (tasks.length > 0) {
+      localStorage.setItem('zen-tasks', JSON.stringify(tasks));
+    }
   }, [tasks]);
 
   // Reminder check logic
   useEffect(() => {
-    const interval = setInterval(() => {
+    const checkReminders = () => {
       const now = new Date();
       const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
       const currentDate = now.toISOString().split('T')[0];
@@ -29,19 +64,35 @@ function App() {
         const newTasks = prevTasks.map(task => {
           if (task.reminderTime === currentTime && task.date === currentDate && !task.notified && !task.completed) {
             changed = true;
+
+            // 1. Browser Notification
             if (Notification.permission === 'granted') {
               new Notification('Recordatorio ZenFlow', {
                 body: `Es hora de: ${task.text}`,
                 icon: '/vite.svg'
               });
             }
+
+            // 2. In-App Notification (Toast)
+            setActiveNotification(task.text);
+
+            // 3. Sound
+            try {
+              const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+              audio.volume = 0.4;
+              audio.play();
+            } catch (e) { console.error("Error playing sound", e); }
+
             return { ...task, notified: true };
           }
           return task;
         });
         return changed ? newTasks : prevTasks;
       });
-    }, 30000); // Check every 30 seconds
+    };
+
+    const interval = setInterval(checkReminders, 10000); // Check every 10 seconds
+    checkReminders(); // Initial check
 
     return () => clearInterval(interval);
   }, []);
@@ -67,6 +118,28 @@ function App() {
             <span>ZenFlow</span>
           </div>
 
+          <div
+            onClick={() => window.refreshZenTasks && window.refreshZenTasks()}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              fontSize: '0.8rem',
+              padding: '6px 12px',
+              borderRadius: '20px',
+              background: syncStatus === 'error' ? '#fed2d2' : 'rgba(255,255,255,0.4)',
+              color: syncStatus === 'error' ? '#c53030' : 'var(--text-secondary)',
+              marginBottom: '1.5rem',
+              width: 'fit-content',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease'
+            }}
+            className={syncStatus === 'syncing' ? 'pulse-slow' : ''}
+          >
+            {syncStatus === 'synced' ? <CloudSync size={14} /> : syncStatus === 'syncing' ? <CloudSync size={14} className="spinning" /> : <CloudOff size={14} />}
+            {syncStatus === 'synced' ? 'Sincronizado' : syncStatus === 'syncing' ? 'Sincronizando...' : 'Error (Reintentar)'}
+          </div>
+
           <nav style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <div
               className={`nav-link ${activeView === 'tasks' ? 'active' : ''}`}
@@ -79,10 +152,6 @@ function App() {
               onClick={() => setActiveView('calendar')}
             >
               <CalendarIcon size={20} /> Calendario
-            </div>
-
-            <div style={{ marginTop: '2rem' }}>
-              <CalendarView tasks={tasks} selectedDate={selectedDate} setSelectedDate={setSelectedDate} />
             </div>
           </nav>
 
@@ -110,8 +179,18 @@ function App() {
               transition={{ duration: 0.4 }}
               style={{ height: '100%' }}
             >
-              {activeView === 'tasks' ? (
-                <TaskContainer tasks={tasks} setTasks={setTasks} selectedDate={selectedDate} />
+              {loading ? (
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                  <div className="floating">Respirando...</div>
+                </div>
+              ) : activeView === 'tasks' ? (
+                <TaskContainer
+                  tasks={tasks}
+                  setTasks={setTasks}
+                  selectedDate={selectedDate}
+                  syncStatus={syncStatus}
+                  setSyncStatus={setSyncStatus}
+                />
               ) : (
                 <CalendarView tasks={tasks} selectedDate={selectedDate} setSelectedDate={setSelectedDate} large={true} />
               )}
@@ -119,6 +198,11 @@ function App() {
           </AnimatePresence>
         </main>
       </div>
+
+      <NotificationToast
+        message={activeNotification}
+        onClose={() => setActiveNotification(null)}
+      />
     </>
   );
 }

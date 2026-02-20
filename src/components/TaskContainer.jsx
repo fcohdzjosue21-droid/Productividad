@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Plus, Trash2, Calendar as CalendarIcon, CheckCircle, Bell,
-    Coffee, Book, Star, Heart, Cloud, Sun, Moon, Wind, MessageSquare
+    Coffee, Book, Star, Heart, Cloud, Sun, Moon, Wind, MessageSquare,
+    Save
 } from 'lucide-react';
+import { supabase } from '../lib/supabaseClient';
 
 const icons = [
     { id: 'wind', Icon: Wind },
@@ -17,14 +19,15 @@ const icons = [
     { id: 'chat', Icon: MessageSquare },
 ];
 
-const TaskContainer = ({ tasks, setTasks, selectedDate }) => {
+const TaskContainer = ({ tasks, setTasks, selectedDate, syncStatus, setSyncStatus }) => {
     const [newTask, setNewTask] = useState('');
     const [urgency, setUrgency] = useState('low');
     const [selectedIcon, setSelectedIcon] = useState('wind');
     const [reminderTime, setReminderTime] = useState('');
 
-    const addTask = () => {
+    const addTask = async () => {
         if (!newTask.trim()) return;
+        setSyncStatus('syncing');
         const task = {
             id: Date.now(),
             text: newTask,
@@ -35,38 +38,71 @@ const TaskContainer = ({ tasks, setTasks, selectedDate }) => {
             reminderTime: reminderTime || null,
             notified: false
         };
-        setTasks([...tasks, task]);
-        setNewTask('');
-        setReminderTime('');
 
-        // Play subtle sound if possible
         try {
+            const { error } = await supabase.from('tasks').insert([task]);
+            if (error) throw error;
+            setTasks([...tasks, task]);
+            setSyncStatus('synced');
+
+            setNewTask('');
+            setReminderTime('');
+
+            // Play subtle sound
             const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3');
             audio.volume = 0.2;
             audio.play();
-        } catch (e) { }
+        } catch (e) {
+            console.error("Error adding task:", e);
+            setSyncStatus('error');
+        }
     };
 
-    const removeTask = (id) => {
-        setTasks(tasks.filter(t => t.id !== id));
+    const removeTask = async (id) => {
+        setSyncStatus('syncing');
+        try {
+            const { error } = await supabase.from('tasks').delete().eq('id', id);
+            if (error) throw error;
+            setTasks(tasks.filter(t => t.id !== id));
+            setSyncStatus('synced');
+        } catch (e) {
+            console.error("Error removing task:", e);
+            setSyncStatus('error');
+        }
     };
 
-    const toggleComplete = (id) => {
-        const newTasks = tasks.map(t => {
-            if (t.id === id) {
-                if (!t.completed) {
-                    // Play success sound
-                    try {
-                        const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3');
-                        audio.volume = 0.3;
-                        audio.play();
-                    } catch (e) { }
+    const toggleComplete = async (id) => {
+        setSyncStatus('syncing');
+        const task = tasks.find(t => t.id === id);
+        if (!task) return;
+
+        try {
+            const { error } = await supabase
+                .from('tasks')
+                .update({ completed: !task.completed })
+                .eq('id', id);
+
+            if (error) throw error;
+
+            const newTasks = tasks.map(t => {
+                if (t.id === id) {
+                    if (!t.completed) {
+                        try {
+                            const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3');
+                            audio.volume = 0.3;
+                            audio.play();
+                        } catch (e) { }
+                    }
+                    return { ...t, completed: !t.completed };
                 }
-                return { ...t, completed: !t.completed };
-            }
-            return t;
-        });
-        setTasks(newTasks);
+                return t;
+            });
+            setTasks(newTasks);
+            setSyncStatus('synced');
+        } catch (e) {
+            console.error("Error toggling task:", e);
+            setSyncStatus('error');
+        }
     };
 
     // Sort tasks: Incomplete first, then by urgency (high > medium > low), then by date
