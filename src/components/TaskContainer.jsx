@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    Plus, Trash2, Calendar as CalendarIcon, CheckCircle,
+    Plus, Trash2, Calendar as CalendarIcon, CheckCircle, Bell,
     Coffee, Book, Star, Heart, Cloud, Sun, Moon, Wind, MessageSquare
 } from 'lucide-react';
 
@@ -21,6 +21,7 @@ const TaskContainer = ({ tasks, setTasks, selectedDate }) => {
     const [newTask, setNewTask] = useState('');
     const [urgency, setUrgency] = useState('low');
     const [selectedIcon, setSelectedIcon] = useState('wind');
+    const [reminderTime, setReminderTime] = useState('');
 
     const addTask = () => {
         if (!newTask.trim()) return;
@@ -30,10 +31,13 @@ const TaskContainer = ({ tasks, setTasks, selectedDate }) => {
             urgency,
             icon: selectedIcon,
             completed: false,
-            date: selectedDate || new Date().toISOString().split('T')[0]
+            date: selectedDate || new Date().toISOString().split('T')[0],
+            reminderTime: reminderTime || null,
+            notified: false
         };
         setTasks([...tasks, task]);
         setNewTask('');
+        setReminderTime('');
 
         // Play subtle sound if possible
         try {
@@ -94,16 +98,29 @@ const TaskContainer = ({ tasks, setTasks, selectedDate }) => {
                     onKeyPress={(e) => e.key === 'Enter' && addTask()}
                 />
 
-                <div className="icon-picker" style={{ marginBottom: '1rem' }}>
-                    {icons.map(({ id, Icon }) => (
-                        <div
-                            key={id}
-                            className={`icon-option ${selectedIcon === id ? 'selected' : ''}`}
-                            onClick={() => setSelectedIcon(id)}
-                        >
-                            <Icon size={18} />
-                        </div>
-                    ))}
+                <div style={{ display: 'flex', gap: '15px', marginBottom: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                    <div className="icon-picker" style={{ margin: 0 }}>
+                        {icons.map(({ id, Icon }) => (
+                            <div
+                                key={id}
+                                className={`icon-option ${selectedIcon === id ? 'selected' : ''}`}
+                                onClick={() => setSelectedIcon(id)}
+                            >
+                                <Icon size={18} />
+                            </div>
+                        ))}
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(255,255,255,0.5)', padding: '4px 12px', borderRadius: '12px' }}>
+                        <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Recordatorio:</span>
+                        <input
+                            type="time"
+                            className="task-input"
+                            style={{ width: 'auto', margin: 0, padding: '4px', border: 'none', background: 'none' }}
+                            value={reminderTime}
+                            onChange={(e) => setReminderTime(e.target.value)}
+                        />
+                    </div>
                 </div>
 
                 <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
