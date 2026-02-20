@@ -1,10 +1,26 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Trash2, Calendar as CalendarIcon, CheckCircle } from 'lucide-react';
+import {
+    Plus, Trash2, Calendar as CalendarIcon, CheckCircle,
+    Coffee, Book, Star, Heart, Cloud, Sun, Moon, Wind, MessageSquare
+} from 'lucide-react';
 
-const TaskContainer = ({ tasks, setTasks, onDateSelect }) => {
+const icons = [
+    { id: 'wind', Icon: Wind },
+    { id: 'coffee', Icon: Coffee },
+    { id: 'book', Icon: Book },
+    { id: 'star', Icon: Star },
+    { id: 'heart', Icon: Heart },
+    { id: 'cloud', Icon: Cloud },
+    { id: 'sun', Icon: Sun },
+    { id: 'moon', Icon: Moon },
+    { id: 'chat', Icon: MessageSquare },
+];
+
+const TaskContainer = ({ tasks, setTasks, selectedDate }) => {
     const [newTask, setNewTask] = useState('');
     const [urgency, setUrgency] = useState('low');
+    const [selectedIcon, setSelectedIcon] = useState('wind');
 
     const addTask = () => {
         if (!newTask.trim()) return;
@@ -12,11 +28,19 @@ const TaskContainer = ({ tasks, setTasks, onDateSelect }) => {
             id: Date.now(),
             text: newTask,
             urgency,
+            icon: selectedIcon,
             completed: false,
-            date: new Date().toISOString().split('T')[0]
+            date: selectedDate || new Date().toISOString().split('T')[0]
         };
         setTasks([...tasks, task]);
         setNewTask('');
+
+        // Play subtle sound if possible
+        try {
+            const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3');
+            audio.volume = 0.2;
+            audio.play();
+        } catch (e) { }
     };
 
     const removeTask = (id) => {
@@ -24,25 +48,64 @@ const TaskContainer = ({ tasks, setTasks, onDateSelect }) => {
     };
 
     const toggleComplete = (id) => {
-        setTasks(tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t));
+        const newTasks = tasks.map(t => {
+            if (t.id === id) {
+                if (!t.completed) {
+                    // Play success sound
+                    try {
+                        const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3');
+                        audio.volume = 0.3;
+                        audio.play();
+                    } catch (e) { }
+                }
+                return { ...t, completed: !t.completed };
+            }
+            return t;
+        });
+        setTasks(newTasks);
     };
+
+    // Sort tasks: Incomplete first, then by urgency (high > medium > low), then by date
+    const filteredTasks = tasks
+        .filter(t => selectedDate ? t.date === selectedDate : true)
+        .sort((a, b) => {
+            if (a.completed !== b.completed) return a.completed ? 1 : -1;
+            const priority = { high: 0, medium: 1, low: 2 };
+            if (priority[a.urgency] !== priority[b.urgency]) return priority[a.urgency] - priority[b.urgency];
+            return b.id - a.id;
+        });
 
     return (
         <div className="task-manager">
             <header style={{ marginBottom: '2rem' }}>
-                <h1 style={{ fontSize: '2.5rem', fontWeight: '700', color: 'var(--text-primary)' }}>Mis Actividades</h1>
-                <p style={{ color: 'var(--text-secondary)' }}>Organiza tu día con calma.</p>
+                <h1 style={{ fontSize: '2.5rem', fontWeight: '700', color: 'var(--text-primary)' }}>
+                    {selectedDate ? `Actividades para el ${selectedDate.split('-').reverse().join('/')}` : 'Mi Flujo Zen'}
+                </h1>
+                <p style={{ color: 'var(--text-secondary)' }}>Organiza tus pensamientos con serenidad.</p>
             </header>
 
-            <div className="input-section" style={{ marginBottom: '2rem' }}>
+            <div className="input-section" style={{ background: 'rgba(255,255,255,0.3)', padding: '1.5rem', borderRadius: '20px', marginBottom: '2rem' }}>
                 <input
                     type="text"
                     className="task-input"
-                    placeholder="¿Qué tienes en mente hoy?"
+                    placeholder="Escribe algo que quieras realizar..."
                     value={newTask}
                     onChange={(e) => setNewTask(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && addTask()}
                 />
+
+                <div className="icon-picker" style={{ marginBottom: '1rem' }}>
+                    {icons.map(({ id, Icon }) => (
+                        <div
+                            key={id}
+                            className={`icon-option ${selectedIcon === id ? 'selected' : ''}`}
+                            onClick={() => setSelectedIcon(id)}
+                        >
+                            <Icon size={18} />
+                        </div>
+                    ))}
+                </div>
+
                 <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                     <select
                         value={urgency}
@@ -50,49 +113,73 @@ const TaskContainer = ({ tasks, setTasks, onDateSelect }) => {
                         className="task-input"
                         style={{ width: 'auto', marginBottom: 0 }}
                     >
-                        <option value="low">Suave</option>
-                        <option value="medium">Media</option>
-                        <option value="high">Alta Urgencia</option>
+                        <option value="low">Prioridad: Suave</option>
+                        <option value="medium">Prioridad: Media</option>
+                        <option value="high">Prioridad: Alta</option>
                     </select>
-                    <button className="btn btn-primary" onClick={addTask}>
-                        <Plus size={20} /> Añadir
+                    <button className="btn btn-primary" onClick={addTask} style={{ marginLeft: 'auto' }}>
+                        <Plus size={20} /> Crear Actividad
                     </button>
                 </div>
             </div>
 
             <div className="task-list">
-                <AnimatePresence>
-                    {tasks.map((task) => (
-                        <motion.div
-                            key={task.id}
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, scale: 0.95 }}
-                            className={`task-card urgency-${task.urgency} ${task.urgency === 'high' ? 'pulse-slow' : ''}`}
-                        >
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                                <CheckCircle
-                                    size={24}
-                                    color={task.completed ? 'var(--primary-color)' : '#cbd5e0'}
-                                    style={{ cursor: 'pointer' }}
-                                    onClick={() => toggleComplete(task.id)}
-                                />
-                                <span style={{
-                                    textDecoration: task.completed ? 'line-through' : 'none',
-                                    color: task.completed ? 'var(--text-secondary)' : 'inherit'
-                                }}>
-                                    {task.text}
-                                </span>
-                            </div>
-                            <button
-                                onClick={() => removeTask(task.id)}
-                                style={{ background: 'none', border: 'none', color: '#feb2b2', cursor: 'pointer' }}
+                <AnimatePresence mode="popLayout">
+                    {filteredTasks.map((task) => {
+                        const TaskIcon = icons.find(i => i.id === task.icon)?.Icon || Wind;
+                        return (
+                            <motion.div
+                                key={task.id}
+                                layout
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.9 }}
+                                className={`task-card urgency-${task.urgency} ${task.urgency === 'high' && !task.completed ? 'pulse-slow' : ''}`}
                             >
-                                <Trash2 size={20} />
-                            </button>
-                        </motion.div>
-                    ))}
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '15px', flex: 1 }}>
+                                    <CheckCircle
+                                        size={28}
+                                        color={task.completed ? 'var(--primary-color)' : '#cbd5e0'}
+                                        style={{ cursor: 'pointer', flexShrink: 0 }}
+                                        onClick={() => toggleComplete(task.id)}
+                                    />
+                                    <div>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                            <TaskIcon size={18} color="var(--text-secondary)" />
+                                            <span style={{
+                                                textDecoration: task.completed ? 'line-through' : 'none',
+                                                color: task.completed ? 'var(--text-secondary)' : 'inherit',
+                                                fontSize: '1.1rem',
+                                                fontWeight: '500'
+                                            }}>
+                                                {task.text}
+                                            </span>
+                                        </div>
+                                        <div className="task-meta">
+                                            <span className={`priority-tag priority-${task.urgency}`}>{task.urgency}</span>
+                                            <span>{task.date}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => removeTask(task.id)}
+                                    style={{ background: 'none', border: 'none', color: '#feb2b2', cursor: 'pointer', padding: '10px' }}
+                                >
+                                    <Trash2 size={20} />
+                                </button>
+                            </motion.div>
+                        );
+                    })}
                 </AnimatePresence>
+                {filteredTasks.length === 0 && (
+                    <motion.p
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        style={{ textAlign: 'center', color: 'var(--text-secondary)', marginTop: '3rem', fontStyle: 'italic' }}
+                    >
+                        No hay actividades pendientes aquí. Respira profundo y disfruta el momento.
+                    </motion.p>
+                )}
             </div>
         </div>
     );
