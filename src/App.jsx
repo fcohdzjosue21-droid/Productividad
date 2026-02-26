@@ -32,6 +32,7 @@ function App() {
       } catch (err) {
         console.error("Error fetching tasks:", err);
         setSyncStatus('error');
+        setActiveNotification(`No se pudo conectar con la nube: ${err.message || 'Error desconocido'}`);
         // Fallback to local storage if supabase fails
         const saved = localStorage.getItem('zen-tasks');
         if (saved) setTasks(JSON.parse(saved));
