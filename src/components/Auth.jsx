@@ -74,10 +74,10 @@ export default function Auth({ onAuthSuccess = () => { } }) {
                         animate={{ opacity: 1, y: 0 }}
                         style={{
                             width: '100%', padding: '12px 16px',
-                            background: '#fff1f0', color: '#c0392b',
+                            background: 'var(--urgency-high-bg)', color: 'var(--urgency-high)',
                             borderRadius: '10px', marginBottom: '1rem',
                             fontSize: '0.875rem', textAlign: 'center',
-                            border: '1px solid #ffd5d2'
+                            border: '1px solid var(--urgency-high)'
                         }}
                     >
                         {errorMsg}
@@ -91,10 +91,10 @@ export default function Auth({ onAuthSuccess = () => { } }) {
                         animate={{ opacity: 1, y: 0 }}
                         style={{
                             width: '100%', padding: '12px 16px',
-                            background: '#f0fff4', color: '#27ae60',
+                            background: 'var(--urgency-low-bg)', color: 'var(--urgency-low)',
                             borderRadius: '10px', marginBottom: '1rem',
                             fontSize: '0.875rem', textAlign: 'center',
-                            border: '1px solid #c3f0cc'
+                            border: '1px solid var(--urgency-low)'
                         }}
                     >
                         {successMsg}

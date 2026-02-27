@@ -59,7 +59,7 @@ const CalendarView = ({ tasks, selectedDate, setSelectedDate, large = false }) =
                         return (
                             <motion.div
                                 key={day}
-                                whileHover={{ y: -5, background: 'rgba(255,255,255,0.7)' }}
+                                whileHover={{ y: -5, background: 'var(--surface-2)' }}
                                 onClick={() => {
                                     const dateStr = `${currentMonth.getFullYear()}-${String(currentMonth.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                                     setSelectedDate(dateStr === selectedDate ? null : dateStr);
@@ -71,7 +71,7 @@ const CalendarView = ({ tasks, selectedDate, setSelectedDate, large = false }) =
                                     {dayTasks.map((t, idx) => (
                                         <div key={idx} className="mini-task-pill" style={{
                                             background: t.urgency === 'high' ? 'var(--ink)' : t.urgency === 'medium' ? 'var(--ink-50)' : 'var(--border-strong)',
-                                            color: t.urgency === 'low' ? 'var(--ink-80)' : '#fff',
+                                            color: 'var(--bg)',
                                             opacity: t.completed ? 0.5 : 1
                                         }}>
                                             {t.text}
