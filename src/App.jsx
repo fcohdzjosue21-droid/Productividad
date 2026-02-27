@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import TaskContainer from './components/TaskContainer';
 import CalendarView from './components/CalendarView';
+import Auth from './components/Auth';
 import NotificationToast from './components/NotificationToast';
 import { supabase } from './lib/supabaseClient';
 import './styles/ZenStyles.css';
-import { Wind, Moon, Sun, Bell, Calendar as CalendarIcon, CloudSync, CloudOff } from 'lucide-react';
+import { BookOpen, LayoutList, Calendar as CalendarIcon, CloudSync, CloudOff, LogOut, Bell, RefreshCw } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 function App() {
@@ -14,10 +15,27 @@ function App() {
   const [selectedDate, setSelectedDate] = useState(null);
   const [activeView, setActiveView] = useState('tasks'); // 'tasks' or 'calendar'
   const [activeNotification, setActiveNotification] = useState(null);
+  const [user, setUser] = useState(null);
 
-  // Fetch tasks on mount
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // Fetch tasks on mount OR when user changes
   useEffect(() => {
     const fetchTasks = async () => {
+      if (!user) {
+        setTasks([]);
+        return;
+      }
       setLoading(true);
       setSyncStatus('syncing');
       try {
@@ -44,7 +62,7 @@ function App() {
     fetchTasks();
     // Expose for retry
     window.refreshZenTasks = fetchTasks;
-  }, []);
+  }, [user]);
 
   // Save to LocalStorage as fallback
   useEffect(() => {
@@ -107,98 +125,106 @@ function App() {
   return (
     <>
       <div className="bg-blobs">
-        <div className="blob blob-1"></div>
-        <div className="blob blob-2"></div>
-        <div className="blob blob-3"></div>
+        <div className="blob blob-1" />
+        <div className="blob blob-2" />
+        <div className="blob blob-3" />
       </div>
 
-      <div className="app-container">
-        <aside className="sidebar">
-          <div className="logo" style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '2rem' }}>
-            <Wind size={32} color="var(--primary-color)" />
-            <span>ZenFlow</span>
-          </div>
-
-          <div
-            onClick={() => window.refreshZenTasks && window.refreshZenTasks()}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              fontSize: '0.8rem',
-              padding: '6px 12px',
-              borderRadius: '20px',
-              background: syncStatus === 'error' ? '#fed2d2' : 'rgba(255,255,255,0.4)',
-              color: syncStatus === 'error' ? '#c53030' : 'var(--text-secondary)',
-              marginBottom: '1.5rem',
-              width: 'fit-content',
-              cursor: 'pointer',
-              transition: 'all 0.3s ease'
-            }}
-            className={syncStatus === 'syncing' ? 'pulse-slow' : ''}
-          >
-            {syncStatus === 'synced' ? <CloudSync size={14} /> : syncStatus === 'syncing' ? <CloudSync size={14} className="spinning" /> : <CloudOff size={14} />}
-            {syncStatus === 'synced' ? 'Sincronizado' : syncStatus === 'syncing' ? 'Sincronizando...' : 'Error (Reintentar)'}
-          </div>
-
-          <nav style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <div
-              className={`nav-link ${activeView === 'tasks' ? 'active' : ''}`}
-              onClick={() => setActiveView('tasks')}
-            >
-              <Sun size={20} /> Actividades
+      {!user ? (
+        <Auth onAuthSuccess={setUser} />
+      ) : (
+        <div className="app-container">
+          <aside className="sidebar">
+            {/* Logo */}
+            <div className="logo">
+              <div className="logo-icon">
+                <BookOpen size={20} color="#fff" />
+              </div>
+              <div>
+                <div className="logo-text">ZenFlow</div>
+                <div className="logo-subtitle">Agenda Digital</div>
+              </div>
             </div>
+
+            {/* Sync badge */}
             <div
-              className={`nav-link ${activeView === 'calendar' ? 'active' : ''}`}
-              onClick={() => setActiveView('calendar')}
+              className={`sync-badge${syncStatus === 'error' ? ' error' : ''}`}
+              onClick={() => window.refreshZenTasks && window.refreshZenTasks()}
+              title="Estado de sincronización"
             >
-              <CalendarIcon size={20} /> Calendario
+              {syncStatus === 'synced' && <CloudSync size={13} />}
+              {syncStatus === 'syncing' && <RefreshCw size={13} className="spinning" />}
+              {syncStatus === 'error' && <CloudOff size={13} />}
+              {syncStatus === 'synced' ? 'Sincronizado' : syncStatus === 'syncing' ? 'Sincronizando…' : 'Error · Reintentar'}
             </div>
-          </nav>
 
-          <div className="sidebar-footer" style={{ marginTop: 'auto', padding: '1rem', background: 'rgba(255,255,255,0.2)', borderRadius: '12px', backdropFilter: 'blur(5px)' }}>
-            <button
-              onClick={requestPermission}
-              className="btn btn-primary"
-              style={{ width: '100%', justifyContent: 'center', marginBottom: '10px', background: 'white', color: 'var(--text-primary)' }}
-            >
-              <Bell size={18} /> Activar Alertas
-            </button>
-            <p style={{ fontSize: '0.8rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
-              "Cada momento es una oportunidad para la paz."
-            </p>
-          </div>
-        </aside>
+            {/* Navigation */}
+            <nav>
+              <div
+                className={`nav-link ${activeView === 'tasks' ? 'active' : ''}`}
+                onClick={() => setActiveView('tasks')}
+              >
+                <LayoutList size={18} /> Actividades
+              </div>
+              <div
+                className={`nav-link ${activeView === 'calendar' ? 'active' : ''}`}
+                onClick={() => setActiveView('calendar')}
+              >
+                <CalendarIcon size={18} /> Calendario
+              </div>
+            </nav>
 
-        <main className="main-content">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activeView}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.4 }}
-              style={{ height: '100%' }}
-            >
-              {loading ? (
-                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-                  <div className="floating">Respirando...</div>
-                </div>
-              ) : activeView === 'tasks' ? (
-                <TaskContainer
-                  tasks={tasks}
-                  setTasks={setTasks}
-                  selectedDate={selectedDate}
-                  syncStatus={syncStatus}
-                  setSyncStatus={setSyncStatus}
-                />
-              ) : (
-                <CalendarView tasks={tasks} selectedDate={selectedDate} setSelectedDate={setSelectedDate} large={true} />
-              )}
-            </motion.div>
-          </AnimatePresence>
-        </main>
-      </div>
+            {/* Footer */}
+            <div className="sidebar-footer">
+              <button
+                onClick={requestPermission}
+                className="btn btn-ghost"
+                style={{ width: '100%', justifyContent: 'center', color: 'rgba(255,255,255,0.5)', borderColor: 'rgba(255,255,255,0.1)', background: 'transparent', fontSize: '0.82rem' }}
+              >
+                <Bell size={15} /> Activar Alertas
+              </button>
+              <button
+                onClick={() => supabase.auth.signOut()}
+                className="btn btn-ghost"
+                style={{ width: '100%', justifyContent: 'center', color: 'rgba(255,255,255,0.5)', borderColor: 'rgba(255,255,255,0.1)', background: 'transparent', fontSize: '0.82rem' }}
+              >
+                <LogOut size={15} /> Cerrar Sesión
+              </button>
+              <p className="sidebar-quote">"Cada momento es una oportunidad para la paz."</p>
+            </div>
+          </aside>
+
+          <main className="main-content">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeView}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.4 }}
+                style={{ height: '100%' }}
+              >
+                {loading ? (
+                  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                    <div className="floating">Cargando tu agenda…</div>
+                  </div>
+                ) : activeView === 'tasks' ? (
+                  <TaskContainer
+                    tasks={tasks}
+                    setTasks={setTasks}
+                    selectedDate={selectedDate}
+                    syncStatus={syncStatus}
+                    setSyncStatus={setSyncStatus}
+                    user={user}
+                  />
+                ) : (
+                  <CalendarView tasks={tasks} selectedDate={selectedDate} setSelectedDate={setSelectedDate} large={true} />
+                )}
+              </motion.div>
+            </AnimatePresence>
+          </main>
+        </div>
+      )}
 
       <NotificationToast
         message={activeNotification}

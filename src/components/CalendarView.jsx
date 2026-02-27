@@ -30,11 +30,11 @@ const CalendarView = ({ tasks, selectedDate, setSelectedDate, large = false }) =
         return (
             <div className="calendar-large">
                 <div className="calendar-header">
-                    <h1 style={{ fontSize: '2.5rem', fontWeight: '700', color: 'var(--text-primary)' }}>
-                        Calendario de Actividades
+                    <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '2.2rem', fontWeight: '400', color: 'var(--ink)', letterSpacing: '-0.03em' }}>
+                        Calendario
                     </h1>
                     <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                        <h3 style={{ color: 'var(--text-secondary)', fontSize: '1.2rem', margin: 0 }}>
+                        <h3 style={{ fontFamily: "'JetBrains Mono', monospace", color: 'var(--ink-50)', fontSize: '1rem', margin: 0, fontWeight: '600', letterSpacing: '0.02em' }}>
                             {monthNames[currentMonth.getMonth()]} {currentMonth.getFullYear()}
                         </h3>
                         <div style={{ display: 'flex', gap: '5px' }}>
@@ -70,8 +70,9 @@ const CalendarView = ({ tasks, selectedDate, setSelectedDate, large = false }) =
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '4px', overflow: 'hidden' }}>
                                     {dayTasks.map((t, idx) => (
                                         <div key={idx} className="mini-task-pill" style={{
-                                            background: t.urgency === 'high' ? 'var(--urgency-high)' : t.urgency === 'medium' ? 'var(--urgency-medium)' : 'var(--urgency-low)',
-                                            opacity: t.completed ? 0.6 : 1
+                                            background: t.urgency === 'high' ? 'var(--ink)' : t.urgency === 'medium' ? 'var(--ink-50)' : 'var(--border-strong)',
+                                            color: t.urgency === 'low' ? 'var(--ink-80)' : '#fff',
+                                            opacity: t.completed ? 0.5 : 1
                                         }}>
                                             {t.text}
                                         </div>

@@ -19,7 +19,7 @@ const icons = [
     { id: 'chat', Icon: MessageSquare },
 ];
 
-const TaskContainer = ({ tasks, setTasks, selectedDate, syncStatus, setSyncStatus }) => {
+const TaskContainer = ({ tasks, setTasks, selectedDate, syncStatus, setSyncStatus, user }) => {
     const [newTask, setNewTask] = useState('');
     const [urgency, setUrgency] = useState('low');
     const [selectedIcon, setSelectedIcon] = useState('wind');
@@ -36,7 +36,8 @@ const TaskContainer = ({ tasks, setTasks, selectedDate, syncStatus, setSyncStatu
             completed: false,
             date: selectedDate || new Date().toISOString().split('T')[0],
             reminderTime: reminderTime || null,
-            notified: false
+            notified: false,
+            user_id: user?.id
         };
 
         try {
@@ -118,13 +119,13 @@ const TaskContainer = ({ tasks, setTasks, selectedDate, syncStatus, setSyncStatu
     return (
         <div className="task-manager">
             <header style={{ marginBottom: '2rem' }}>
-                <h1 style={{ fontSize: '2.5rem', fontWeight: '700', color: 'var(--text-primary)' }}>
-                    {selectedDate ? `Actividades para el ${selectedDate.split('-').reverse().join('/')}` : 'Mi Flujo Zen'}
+                <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '2.2rem', fontWeight: '400', color: 'var(--ink)', letterSpacing: '-0.03em' }}>
+                    {selectedDate ? `Agenda del ${selectedDate.split('-').reverse().join('/')}` : 'Mi Agenda'}
                 </h1>
-                <p style={{ color: 'var(--text-secondary)' }}>Organiza tus pensamientos con serenidad.</p>
+                <p style={{ color: 'var(--ink-50)', fontSize: '0.9rem', marginTop: '4px' }}>Organiza tus actividades con claridad.</p>
             </header>
 
-            <div className="input-section" style={{ background: 'rgba(255,255,255,0.3)', padding: '1.5rem', borderRadius: '20px', marginBottom: '2rem' }}>
+            <div className="input-section" style={{ background: 'var(--surface)', padding: '1.5rem', borderRadius: 'var(--radius-lg)', marginBottom: '2rem', border: '1px solid var(--border)', boxShadow: 'var(--shadow-xs)' }}>
                 <input
                     type="text"
                     className="task-input"
@@ -147,8 +148,8 @@ const TaskContainer = ({ tasks, setTasks, selectedDate, syncStatus, setSyncStatu
                         ))}
                     </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(255,255,255,0.5)', padding: '4px 12px', borderRadius: '12px' }}>
-                        <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Recordatorio:</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--surface-2)', padding: '4px 12px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)' }}>
+                        <span style={{ fontSize: '0.8rem', color: 'var(--ink-50)', fontWeight: 500 }}>Recordatorio:</span>
                         <input
                             type="time"
                             className="task-input"
@@ -192,16 +193,16 @@ const TaskContainer = ({ tasks, setTasks, selectedDate, syncStatus, setSyncStatu
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '15px', flex: 1 }}>
                                     <CheckCircle
                                         size={28}
-                                        color={task.completed ? 'var(--primary-color)' : '#cbd5e0'}
+                                        color={task.completed ? 'var(--ink-30)' : 'var(--ink)'}
                                         style={{ cursor: 'pointer', flexShrink: 0 }}
                                         onClick={() => toggleComplete(task.id)}
                                     />
                                     <div>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                            <TaskIcon size={18} color="var(--text-secondary)" />
+                                            <TaskIcon size={18} color="var(--ink-30)" />
                                             <span style={{
                                                 textDecoration: task.completed ? 'line-through' : 'none',
-                                                color: task.completed ? 'var(--text-secondary)' : 'inherit',
+                                                color: task.completed ? 'var(--ink-30)' : 'var(--ink)',
                                                 fontSize: '1.1rem',
                                                 fontWeight: '500'
                                             }}>
@@ -216,7 +217,9 @@ const TaskContainer = ({ tasks, setTasks, selectedDate, syncStatus, setSyncStatu
                                 </div>
                                 <button
                                     onClick={() => removeTask(task.id)}
-                                    style={{ background: 'none', border: 'none', color: '#feb2b2', cursor: 'pointer', padding: '10px' }}
+                                    style={{ background: 'none', border: 'none', color: 'var(--ink-30)', cursor: 'pointer', padding: '10px', transition: 'color 0.2s' }}
+                                    onMouseEnter={(e) => e.currentTarget.style.color = 'var(--ink)'}
+                                    onMouseLeave={(e) => e.currentTarget.style.color = 'var(--ink-30)'}
                                 >
                                     <Trash2 size={20} />
                                 </button>
@@ -228,7 +231,7 @@ const TaskContainer = ({ tasks, setTasks, selectedDate, syncStatus, setSyncStatu
                     <motion.p
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
-                        style={{ textAlign: 'center', color: 'var(--text-secondary)', marginTop: '3rem', fontStyle: 'italic' }}
+                        style={{ textAlign: 'center', color: 'var(--ink-30)', marginTop: '3rem', fontFamily: "'DM Serif Display', serif", fontStyle: 'italic', fontSize: '1.1rem' }}
                     >
                         No hay actividades pendientes aquí. Respira profundo y disfruta el momento.
                     </motion.p>
