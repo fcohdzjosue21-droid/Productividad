@@ -166,9 +166,18 @@ const TaskContainer = ({ tasks, setTasks, selectedDate, syncStatus, setSyncStatu
     const completedCount = currentDayTasks.filter(t => t.completed).length;
     const progressPercent = totalCount === 0 ? 0 : Math.round((completedCount / totalCount) * 100);
 
-    // Victory effect
+    // Victory effect & Streak calculation
     useEffect(() => {
         if (totalCount > 0 && progressPercent === 100) {
+            // Only reward streak once per day, pseudo-logic for MVP
+            const lastStreakDate = localStorage.getItem('zen-last-streak-date');
+            const todayStr = new Date().toISOString().split('T')[0];
+
+            if (lastStreakDate !== todayStr) {
+                setStreak(prev => prev + 1);
+                localStorage.setItem('zen-last-streak-date', todayStr);
+            }
+
             try {
                 const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3');
                 audio.volume = 0.4;
@@ -177,27 +186,65 @@ const TaskContainer = ({ tasks, setTasks, selectedDate, syncStatus, setSyncStatu
         }
     }, [progressPercent, totalCount]);
 
+    // Virtual Pet State Logic
+    const getPetEmoji = () => {
+        if (streak >= 3) return '🔥🦊'; // On fire!
+        if (progressPercent === 100) return '🎉🦊'; // Happy!
+        if (progressPercent > 50) return '🦊'; // Neutral active
+        if (totalCount === 0) return '💤🦊'; // Sleeping / no tasks
+        return '🥺🦊'; // Needs attention
+    };
+    const getPetMessage = () => {
+        if (streak >= 3) return `¡Estás imparable! Racha de ${streak} días.`;
+        if (progressPercent === 100) return '¡Día perfecto, buen trabajo!';
+        if (progressPercent > 50) return '¡Ya casi lo logramos!';
+        if (totalCount === 0) return 'No hay planes para hoy. A descansar...';
+        return '¡Vamos, tú puedes con esto!';
+    };
+
     return (
         <div className="task-manager">
-            <header style={{ marginBottom: '2rem' }}>
-                <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '2.2rem', fontWeight: '400', color: 'var(--ink)', letterSpacing: '-0.03em' }}>
-                    {selectedDate ? `Agenda del ${selectedDate.split('-').reverse().join('/')}` : 'Mi Agenda'}
-                </h1>
-                <p style={{ color: 'var(--ink-50)', fontSize: '0.9rem', marginTop: '4px' }}>Organiza tus actividades con claridad.</p>
+            <header style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '20px' }}>
+                <div style={{ flex: 1, minWidth: '250px' }}>
+                    <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '2.2rem', fontWeight: '400', color: 'var(--ink)', letterSpacing: '-0.03em' }}>
+                        {selectedDate ? `Agenda del ${selectedDate.split('-').reverse().join('/')}` : 'Mi Agenda'}
+                    </h1>
+                    <p style={{ color: 'var(--ink-50)', fontSize: '0.9rem', marginTop: '4px' }}>Organiza tus actividades con claridad.</p>
+                </div>
 
+                {/* Gamification Dashboard (Points, Level, Pet) */}
+                <div style={{ background: 'var(--surface)', padding: '12px 20px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '15px', boxShadow: 'var(--shadow-sm)' }}>
+                    <div style={{ fontSize: '2.5rem', filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.2))', animation: progressPercent === 100 ? 'float 3s ease-in-out infinite' : 'none' }}>
+                        {getPetEmoji()}
+                    </div>
+                    <div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', fontWeight: 'bold', color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                            <span>Lvl {currentLevel}: {getLevelTitle(currentLevel)}</span>
+                            <span title="Faltan puntos para el siguiente nivel" style={{ color: 'var(--ink-50)' }}>+{pointsToNextLevel}</span>
+                        </div>
+                        <p style={{ fontSize: '0.85rem', color: 'var(--ink)', fontWeight: 500, margin: '2px 0 4px 0' }}>{getPetMessage()}</p>
+                        <div style={{ display: 'flex', gap: '10px', fontSize: '0.75rem', color: 'var(--ink-80)' }}>
+                            <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>⭐ {points} pts</span>
+                            <span style={{ display: 'flex', alignItems: 'center', gap: '3px', color: streak > 0 ? '#ef4444' : 'inherit' }}>🔥 {streak} días</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div style={{ marginBottom: '1.5rem' }}>
                 {/* Progress Bar */}
                 {totalCount > 0 && (
-                    <div style={{ marginTop: '1.5rem' }}>
+                    <div style={{ marginTop: '0.5rem' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: 'var(--ink-50)', marginBottom: '8px', fontWeight: 600 }}>
                             <span>Progreso del Día</span>
                             <span>{completedCount} / {totalCount} ({progressPercent}%)</span>
                         </div>
                         <div style={{ height: '8px', background: 'var(--border)', borderRadius: '99px', overflow: 'hidden' }}>
-                            <div style={{ height: '100%', width: `${progressPercent}%`, background: progressPercent === 100 ? '#4CAF50' : 'var(--ink)', transition: 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)' }} />
+                            <div style={{ height: '100%', width: `${progressPercent}%`, background: progressPercent === 100 ? '#4CAF50' : 'var(--accent)', transition: 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)' }} />
                         </div>
                     </div>
                 )}
-            </header>
+            </div>
 
             <div className="input-section" style={{ background: 'var(--surface)', padding: '1.5rem', borderRadius: 'var(--radius-lg)', marginBottom: '2rem', border: '1px solid var(--border)', boxShadow: 'var(--shadow-xs)' }}>
                 <input
