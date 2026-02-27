@@ -864,9 +864,15 @@ body {
 }
 
 /* ── Responsive ─────────────────────────────────────────── */
+/* ── Mobile Nav ─────────────────────────────────────────── */
+.mobile-nav {
+  display: none;
+}
+
 @media (max-width: 768px) {
   .app-container {
     grid-template-columns: 1fr;
+    grid-template-rows: 1fr 65px;
     height: 100vh;
     border-radius: 0;
     width: 100vw;
@@ -877,6 +883,72 @@ body {
   }
 
   .main-content {
-    padding: 1.5rem;
+    padding: 1.25rem 1rem;
+    padding-bottom: 2rem; /* some extra space */
+  }
+
+  .mobile-nav {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    height: 65px;
+    width: 100%;
+    z-index: 100;
+  }
+
+  .mobile-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    color: var(--ink-50);
+    font-size: 0.75rem;
+    cursor: pointer;
+    flex: 1;
+    height: 100%;
+  }
+
+  .mobile-nav-item.active {
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  /* Calendar Responsive Adjustments for Mobile */
+  .calendar-grid-large {
+    gap: 4px;
+    margin-top: 12px;
+  }
+  
+  .calendar-day-large {
+    padding: 4px;
+    min-height: 55px;
+    border-radius: var(--radius-sm);
+  }
+  
+  .calendar-day-large .day-number {
+    font-size: 0.75rem;
+  }
+
+  .mini-task-pill {
+    font-size: 0.55rem;
+    padding: 2px 4px;
+    border-radius: 3px;
+  }
+
+  .calendar-large .calendar-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .calendar-large .calendar-header h1 {
+    font-size: 1.6rem;
+  }
+
+  .calendar-large .calendar-header h3 {
+    font-size: 0.9rem;
   }
 }

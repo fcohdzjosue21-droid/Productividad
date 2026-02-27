@@ -240,6 +240,24 @@ function App() {
               </motion.div>
             </AnimatePresence>
           </main>
+
+          {/* Nav para mobile */}
+          <nav className="mobile-nav">
+            <div
+              className={`mobile-nav-item ${activeView === 'tasks' ? 'active' : ''}`}
+              onClick={() => setActiveView('tasks')}
+            >
+              <LayoutList size={22} />
+              <span>Actividades</span>
+            </div>
+            <div
+              className={`mobile-nav-item ${activeView === 'calendar' ? 'active' : ''}`}
+              onClick={() => setActiveView('calendar')}
+            >
+              <CalendarIcon size={22} />
+              <span>Calendario</span>
+            </div>
+          </nav>
         </div>
       )}
 
