@@ -71,7 +71,25 @@ function App() {
     }
   }, [tasks]);
 
-  // Reminder check logic
+  // ── Helper: show notification via Service Worker (works on mobile PWA) ──
+  const showMobileNotification = async (title, body) => {
+    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+      // Route through SW — this works on Android & iOS PWA
+      navigator.serviceWorker.controller.postMessage({
+        type: 'SHOW_NOTIFICATION',
+        title,
+        body,
+        tag: `zenflow-${Date.now()}`,
+      });
+      return;
+    }
+    // Fallback: desktop browser native notification
+    if (Notification.permission === 'granted') {
+      new Notification(title, { body, icon: '/favicon.svg' });
+    }
+  };
+
+  // ── Reminder check logic ──────────────────────────────────
   useEffect(() => {
     const checkReminders = () => {
       const now = new Date();
@@ -84,23 +102,18 @@ function App() {
           if (task.reminderTime === currentTime && task.date === currentDate && !task.notified && !task.completed) {
             changed = true;
 
-            // 1. Browser Notification
-            if (Notification.permission === 'granted') {
-              new Notification('Recordatorio ZenFlow', {
-                body: `Es hora de: ${task.text}`,
-                icon: '/vite.svg'
-              });
-            }
+            // 1. Notification (SW for mobile, native for desktop)
+            showMobileNotification('📋 ZenFlow — Recordatorio', `Es hora de: ${task.text}`);
 
-            // 2. In-App Notification (Toast)
+            // 2. In-App Toast
             setActiveNotification(task.text);
 
             // 3. Sound
             try {
               const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
-              audio.volume = 0.4;
-              audio.play();
-            } catch (e) { console.error("Error playing sound", e); }
+              audio.volume = 0.5;
+              audio.play().catch(() => { });
+            } catch (e) { /* silent */ }
 
             return { ...task, notified: true };
           }
@@ -110,15 +123,19 @@ function App() {
       });
     };
 
-    const interval = setInterval(checkReminders, 10000); // Check every 10 seconds
-    checkReminders(); // Initial check
-
+    const interval = setInterval(checkReminders, 30000); // Check every 30s
+    checkReminders();
     return () => clearInterval(interval);
   }, []);
 
-  const requestPermission = () => {
-    if ('Notification' in window) {
-      Notification.requestPermission();
+  // ── Request notification permission ──────────────────────
+  const requestPermission = async () => {
+    if (!('Notification' in window)) return;
+    const permission = await Notification.requestPermission();
+    if (permission === 'granted') {
+      setTimeout(() => {
+        showMobileNotification('✅ ZenFlow', '¡Notificaciones activas! Te avisaremos puntualmente.');
+      }, 500);
     }
   };
 

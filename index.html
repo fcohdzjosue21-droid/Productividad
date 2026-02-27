@@ -9,9 +9,12 @@
   <link rel="alternate icon" href="/favicon.svg" />
 
   <!-- PWA / Mobile -->
+  <link rel="manifest" href="/manifest.json" />
   <meta name="theme-color" content="#0f0e0d" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="ZenFlow" />
+  <link rel="apple-touch-icon" href="/favicon.svg" />
 
   <!-- SEO -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -24,6 +27,29 @@
 <body>
   <div id="root"></div>
   <script type="module" src="/src/main.jsx"></script>
+
+  <!-- Service Worker Registration -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').then((reg) => {
+          console.log('[ZenFlow] SW registrado:', reg.scope);
+
+          // Detect new version available (after Vercel deploy)
+          reg.addEventListener('updatefound', () => {
+            const newSW = reg.installing;
+            newSW.addEventListener('statechange', () => {
+              if (newSW.state === 'installed' && navigator.serviceWorker.controller) {
+                // New version ready — auto-reload
+                console.log('[ZenFlow] Nueva versión disponible, recargando...');
+                window.location.reload();
+              }
+            });
+          });
+        }).catch((err) => console.warn('[ZenFlow] SW error:', err));
+      });
+    }
+  </script>
 </body>
 
 </html>
