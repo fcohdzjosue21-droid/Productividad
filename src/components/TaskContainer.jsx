@@ -34,6 +34,29 @@ const TaskContainer = ({ tasks, setTasks, selectedDate, syncStatus, setSyncStatu
     const [filterCategory, setFilterCategory] = useState('Todas');
     const [showOnlyEssential, setShowOnlyEssential] = useState(false);
 
+    // Gamification MVP System
+    const [points, setPoints] = useState(() => parseInt(localStorage.getItem('zen-points') || '0', 10));
+    const [streak, setStreak] = useState(() => parseInt(localStorage.getItem('zen-streak') || '0', 10));
+
+    useEffect(() => {
+        localStorage.setItem('zen-points', points.toString());
+    }, [points]);
+
+    useEffect(() => {
+        localStorage.setItem('zen-streak', streak.toString());
+    }, [streak]);
+
+    // Simple Leveling system: every 100 points is a level.
+    const currentLevel = Math.floor(points / 100) + 1;
+    const pointsToNextLevel = 100 - (points % 100);
+
+    const getLevelTitle = (level) => {
+        if (level < 3) return "Principiante";
+        if (level < 7) return "Constante";
+        if (level < 12) return "Productivo";
+        return "Experto Zen";
+    };
+
     const addTask = async () => {
         if (!newTask.trim()) return;
         setSyncStatus('syncing');
@@ -100,11 +123,19 @@ const TaskContainer = ({ tasks, setTasks, selectedDate, syncStatus, setSyncStatu
             const newTasks = tasks.map(t => {
                 if (t.id === id) {
                     if (!t.completed) {
+                        // Rewarding task completion
+                        const reward = t.isMainObjective ? 50 : 10;
+                        setPoints(prev => prev + reward);
+
                         try {
                             const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3');
                             audio.volume = 0.3;
                             audio.play();
                         } catch (e) { }
+                    } else {
+                        // Penalizing if unchecked
+                        const penalty = t.isMainObjective ? 50 : 10;
+                        setPoints(prev => Math.max(0, prev - penalty));
                     }
                     return { ...t, completed: !t.completed };
                 }

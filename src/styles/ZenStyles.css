@@ -6,36 +6,45 @@
 @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
 
 :root {
-  /* Monochrome Palette */
-  --bg: #f8f7f4;
-  --surface: #ffffff;
-  --surface-2: #f2f1ee;
-  --border: #e2e0db;
-  --border-strong: #c8c5be;
+  /* Blue Palette */
+  --bg: #0b1120;
+  --surface: #1e293b;
+  --surface-2: #334155;
+  --border: #334155;
+  --border-strong: #475569;
 
-  --ink: #0f0e0d;
-  --ink-80: #2d2c2a;
-  --ink-50: #6b6a67;
-  --ink-30: #a3a19d;
+  /* Text Colors */
+  --ink: #f8fafc;
+  /* White text */
+  --ink-80: #e2e8f0;
+  /* Slightly dim */
+  --ink-50: #94a3b8;
+  /* Muted / secondary text */
+  --ink-30: #64748b;
+  /* Very muted */
 
-  /* Accent — stays monochrome */
-  --accent: #0f0e0d;
-  --accent-hover: #2d2c2a;
+  /* Accent */
+  --accent: #3b82f6;
+  /* Bright blue */
+  --accent-hover: #60a5fa;
 
-  /* Urgency — subtle tones, not vivid */
-  --urgency-high: #1a1a1a;
-  --urgency-medium: #555555;
-  --urgency-low: #acacac;
+  /* Urgency */
+  --urgency-high: #ef4444;
+  /* Red for high */
+  --urgency-medium: #f59e0b;
+  /* Orange for medium */
+  --urgency-low: #3b82f6;
+  /* Blue for low */
 
-  --urgency-high-bg: #fff1f0;
-  --urgency-medium-bg: #fffff0;
-  --urgency-low-bg: #f0fff0;
+  --urgency-high-bg: rgba(239, 68, 68, 0.1);
+  --urgency-medium-bg: rgba(245, 158, 11, 0.1);
+  --urgency-low-bg: rgba(59, 130, 246, 0.1);
 
   /* Shadows */
-  --shadow-xs: 0 1px 3px rgba(0, 0, 0, 0.06);
-  --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.08);
-  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.10);
-  --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.14);
+  --shadow-xs: 0 1px 3px rgba(0, 0, 0, 0.2);
+  --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.5);
 
   /* Misc */
   --radius-sm: 8px;
@@ -884,7 +893,8 @@ body {
 
   .main-content {
     padding: 1.25rem 1rem;
-    padding-bottom: 2rem; /* some extra space */
+    padding-bottom: 2rem;
+    /* some extra space */
   }
 
   .mobile-nav {
@@ -921,13 +931,13 @@ body {
     gap: 4px;
     margin-top: 12px;
   }
-  
+
   .calendar-day-large {
     padding: 4px;
     min-height: 55px;
     border-radius: var(--radius-sm);
   }
-  
+
   .calendar-day-large .day-number {
     font-size: 0.75rem;
   }
