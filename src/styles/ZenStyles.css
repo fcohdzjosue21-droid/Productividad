@@ -169,7 +169,7 @@ body {
 
 /* ── Sidebar ─────────────────────────────────────────────── */
 .sidebar {
-  background: var(--ink);
+  background: var(--surface-2);
   border-right: 1px solid rgba(255, 255, 255, 0.06);
   padding: 2rem 1.5rem;
   display: flex;
@@ -768,7 +768,7 @@ body {
   position: fixed;
   bottom: 32px;
   right: 32px;
-  background: var(--ink);
+  background: var(--surface-2);
   color: #fff;
   padding: 16px 20px;
   border-radius: var(--radius-lg);
@@ -822,7 +822,7 @@ body {
 .auth-logo-mark {
   width: 56px;
   height: 56px;
-  background: var(--ink);
+  background: var(--accent);
   border-radius: 16px;
   display: flex;
   align-items: center;
