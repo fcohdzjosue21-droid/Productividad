@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Plus, Trash2, Calendar as CalendarIcon, CheckCircle, Bell,
@@ -19,11 +19,20 @@ const icons = [
     { id: 'chat', Icon: MessageSquare },
 ];
 
+const categoriesList = ['General', 'Estudio', 'Trabajo', 'Personal', 'Salud'];
+
 const TaskContainer = ({ tasks, setTasks, selectedDate, syncStatus, setSyncStatus, user }) => {
     const [newTask, setNewTask] = useState('');
     const [urgency, setUrgency] = useState('low');
+    const [category, setCategory] = useState('General');
+    const [isMainObjective, setIsMainObjective] = useState(false);
     const [selectedIcon, setSelectedIcon] = useState('wind');
     const [reminderTime, setReminderTime] = useState('');
+
+    // Filters MVP
+    const [searchQuery, setSearchQuery] = useState('');
+    const [filterCategory, setFilterCategory] = useState('Todas');
+    const [showOnlyEssential, setShowOnlyEssential] = useState(false);
 
     const addTask = async () => {
         if (!newTask.trim()) return;
@@ -32,6 +41,8 @@ const TaskContainer = ({ tasks, setTasks, selectedDate, syncStatus, setSyncStatu
             id: Date.now(),
             text: newTask,
             urgency,
+            category,
+            isMainObjective,
             icon: selectedIcon,
             completed: false,
             date: selectedDate || new Date().toISOString().split('T')[0],
@@ -48,6 +59,7 @@ const TaskContainer = ({ tasks, setTasks, selectedDate, syncStatus, setSyncStatu
 
             setNewTask('');
             setReminderTime('');
+            setIsMainObjective(false);
 
             // Play subtle sound
             const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3');
@@ -109,12 +121,30 @@ const TaskContainer = ({ tasks, setTasks, selectedDate, syncStatus, setSyncStatu
     // Sort tasks: Incomplete first, then by urgency (high > medium > low), then by date
     const filteredTasks = tasks
         .filter(t => selectedDate ? t.date === selectedDate : true)
+        .filter(t => filterCategory === 'Todas' ? true : t.category === filterCategory)
+        .filter(t => searchQuery ? t.text.toLowerCase().includes(searchQuery.toLowerCase()) : true)
+        .filter(t => showOnlyEssential ? (t.urgency === 'high' || t.isMainObjective) : true)
         .sort((a, b) => {
             if (a.completed !== b.completed) return a.completed ? 1 : -1;
             const priority = { high: 0, medium: 1, low: 2 };
             if (priority[a.urgency] !== priority[b.urgency]) return priority[a.urgency] - priority[b.urgency];
             return b.id - a.id;
         });
+    const currentDayTasks = tasks.filter(t => t.date === (selectedDate || new Date().toISOString().split('T')[0]));
+    const totalCount = currentDayTasks.length;
+    const completedCount = currentDayTasks.filter(t => t.completed).length;
+    const progressPercent = totalCount === 0 ? 0 : Math.round((completedCount / totalCount) * 100);
+
+    // Victory effect
+    useEffect(() => {
+        if (totalCount > 0 && progressPercent === 100) {
+            try {
+                const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3');
+                audio.volume = 0.4;
+                audio.play();
+            } catch (e) { }
+        }
+    }, [progressPercent, totalCount]);
 
     return (
         <div className="task-manager">
@@ -123,6 +153,19 @@ const TaskContainer = ({ tasks, setTasks, selectedDate, syncStatus, setSyncStatu
                     {selectedDate ? `Agenda del ${selectedDate.split('-').reverse().join('/')}` : 'Mi Agenda'}
                 </h1>
                 <p style={{ color: 'var(--ink-50)', fontSize: '0.9rem', marginTop: '4px' }}>Organiza tus actividades con claridad.</p>
+
+                {/* Progress Bar */}
+                {totalCount > 0 && (
+                    <div style={{ marginTop: '1.5rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: 'var(--ink-50)', marginBottom: '8px', fontWeight: 600 }}>
+                            <span>Progreso del Día</span>
+                            <span>{completedCount} / {totalCount} ({progressPercent}%)</span>
+                        </div>
+                        <div style={{ height: '8px', background: 'var(--border)', borderRadius: '99px', overflow: 'hidden' }}>
+                            <div style={{ height: '100%', width: `${progressPercent}%`, background: progressPercent === 100 ? '#4CAF50' : 'var(--ink)', transition: 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)' }} />
+                        </div>
+                    </div>
+                )}
             </header>
 
             <div className="input-section" style={{ background: 'var(--surface)', padding: '1.5rem', borderRadius: 'var(--radius-lg)', marginBottom: '2rem', border: '1px solid var(--border)', boxShadow: 'var(--shadow-xs)' }}>
@@ -161,6 +204,19 @@ const TaskContainer = ({ tasks, setTasks, selectedDate, syncStatus, setSyncStatu
                 </div>
 
                 <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                    <select value={category} onChange={e => setCategory(e.target.value)} className="task-input" style={{ width: 'auto', marginBottom: 0 }}>
+                        {categoriesList.map(c => <option key={c} value={c}>{c}</option>)}
+                    </select>
+
+                    <button
+                        className={`btn ${isMainObjective ? 'btn-primary' : 'btn-ghost'}`}
+                        style={{ padding: '8px', minWidth: '40px', display: 'flex', justifyContent: 'center' }}
+                        title="Marcar como Objetivo Principal del Día"
+                        onClick={() => setIsMainObjective(!isMainObjective)}
+                    >
+                        👑
+                    </button>
+
                     <select
                         value={urgency}
                         onChange={(e) => setUrgency(e.target.value)}
@@ -173,6 +229,37 @@ const TaskContainer = ({ tasks, setTasks, selectedDate, syncStatus, setSyncStatu
                     </select>
                     <button className="btn btn-primary" onClick={addTask} style={{ marginLeft: 'auto' }}>
                         <Plus size={20} /> Crear Actividad
+                    </button>
+                </div>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '10px' }}>
+                <input
+                    type="text"
+                    placeholder="🔍 Buscar tarea..."
+                    className="task-input"
+                    style={{ width: '200px', marginBottom: 0, padding: '8px 12px' }}
+                    value={searchQuery}
+                    onChange={e => setSearchQuery(e.target.value)}
+                />
+
+                <div style={{ display: 'flex', gap: '10px' }}>
+                    <select
+                        value={filterCategory}
+                        onChange={e => setFilterCategory(e.target.value)}
+                        className="task-input"
+                        style={{ width: 'auto', marginBottom: 0, padding: '8px 12px' }}
+                    >
+                        <option value="Todas">Categorías (Todas)</option>
+                        {categoriesList.map(c => <option key={c} value={c}>{c}</option>)}
+                    </select>
+
+                    <button
+                        className={`btn ${showOnlyEssential ? 'btn-primary' : 'btn-ghost'}`}
+                        onClick={() => setShowOnlyEssential(!showOnlyEssential)}
+                        style={{ padding: '8px 16px' }}
+                    >
+                        ✨ Solo lo esencial
                     </button>
                 </div>
             </div>
@@ -211,7 +298,13 @@ const TaskContainer = ({ tasks, setTasks, selectedDate, syncStatus, setSyncStatu
                                         </div>
                                         <div className="task-meta">
                                             <span className={`priority-tag priority-${task.urgency}`}>{task.urgency}</span>
-                                            <span>{task.date}</span>
+                                            {task.category && task.category !== 'General' && (
+                                                <span className="priority-tag" style={{ background: 'var(--surface-2)', color: 'var(--ink-50)' }}>
+                                                    {task.category}
+                                                </span>
+                                            )}
+                                            {task.isMainObjective && <span title="Objetivo Principal del Día" style={{ fontSize: '1rem' }}>👑</span>}
+                                            <span style={{ marginLeft: 'auto' }}>{task.date}</span>
                                         </div>
                                     </div>
                                 </div>

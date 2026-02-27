@@ -17,6 +17,34 @@ function App() {
   const [activeNotification, setActiveNotification] = useState(null);
   const [user, setUser] = useState(null);
 
+  // Phase 1: Mood & Daily Quote
+  const dailyPhrases = [
+    "Un paso a la vez.",
+    "La constancia es la clave del éxito.",
+    "Respira profundo y disfruta el momento.",
+    "Hoy es un gran día para avanzar.",
+    "El progreso lento sigue siendo progreso.",
+    "Tu única competencia eres tú mismo.",
+    "Haz de hoy tu obra maestra."
+  ];
+  const [dailyQuote] = useState(dailyPhrases[new Date().getDay() % dailyPhrases.length]);
+
+  const todayStr = new Date().toISOString().split('T')[0];
+  const [mood, setMood] = useState(() => {
+    const saved = localStorage.getItem('zen-mood-data');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (parsed.date === todayStr) return parsed.mood;
+    }
+    return null;
+  });
+
+  useEffect(() => {
+    if (mood) {
+      localStorage.setItem('zen-mood-data', JSON.stringify({ date: todayStr, mood }));
+    }
+  }, [mood, todayStr]);
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
@@ -207,7 +235,27 @@ function App() {
               >
                 <LogOut size={15} /> Cerrar Sesión
               </button>
-              <p className="sidebar-quote">"Cada momento es una oportunidad para la paz."</p>
+              <div style={{ background: 'rgba(255,255,255,0.03)', padding: '12px', borderRadius: 'var(--radius-md)', marginBottom: '10px' }}>
+                <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginBottom: '8px', fontWeight: 600 }}>¿Cómo te sientes hoy?</p>
+                <div style={{ display: 'flex', justifyContent: 'space-around' }}>
+                  {['😄', '😐', '😢'].map(m => (
+                    <span
+                      key={m}
+                      onClick={() => setMood(m)}
+                      style={{
+                        cursor: 'pointer',
+                        fontSize: '1.2rem',
+                        opacity: mood === m ? 1 : 0.4,
+                        transform: mood === m ? 'scale(1.2)' : 'scale(1)',
+                        transition: 'all 0.2s'
+                      }}
+                    >
+                      {m}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <p className="sidebar-quote">"{dailyQuote}"</p>
             </div>
           </aside>
 
