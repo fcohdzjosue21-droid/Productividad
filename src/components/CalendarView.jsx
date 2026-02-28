@@ -26,14 +26,66 @@ const CalendarView = ({ tasks, selectedDate, setSelectedDate, large = false }) =
         return d.getDate() === day && d.getMonth() === currentMonth.getMonth() && d.getFullYear() === currentMonth.getFullYear();
     };
 
+    const handlePrintPdf = () => {
+        window.print();
+    };
+
+    const handleEmailAgenda = () => {
+        const currentMonthTasks = tasks.filter(t => {
+            const taskDate = new Date(t.date);
+            return taskDate.getMonth() === currentMonth.getMonth() && taskDate.getFullYear() === currentMonth.getFullYear();
+        });
+
+        if (currentMonthTasks.length === 0) {
+            alert('No hay tareas este mes para enviar.');
+            return;
+        }
+
+        let emailBody = `Hola,\n\nAquí está tu agenda para ${monthNames[currentMonth.getMonth()]} ${currentMonth.getFullYear()}:\n\n`;
+
+        // Group by date
+        const grouped = {};
+        currentMonthTasks.forEach(t => {
+            if (!grouped[t.date]) grouped[t.date] = [];
+            grouped[t.date].push(t);
+        });
+
+        Object.keys(grouped).sort().forEach(date => {
+            emailBody += `--- ${date.split('-').reverse().join('/')} ---\n`;
+            grouped[date].forEach(t => {
+                const status = t.completed ? '[x]' : '[ ]';
+                const time = t.reminderTime ? `(${t.reminderTime})` : '';
+                emailBody += `${status} ${t.text} ${time} - Prioridad: ${t.urgency}\n`;
+            });
+            emailBody += `\n`;
+        });
+
+        emailBody += `\n¡Que tengas un excelente mes!\nGenerado desde ZenFlow.`;
+
+        const subject = encodeURIComponent(`Mi Agenda ZenFlow - ${monthNames[currentMonth.getMonth()]}`);
+        const body = encodeURIComponent(emailBody);
+
+        window.location.href = `mailto:?subject=${subject}&body=${body}`;
+    };
+
     if (large) {
         return (
             <div className="calendar-large">
-                <div className="calendar-header">
-                    <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '2.2rem', fontWeight: '400', color: 'var(--ink)', letterSpacing: '-0.03em' }}>
+                <div className="calendar-header" style={{ flexWrap: 'wrap', gap: '15px' }}>
+                    <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '2.2rem', fontWeight: '400', color: 'var(--ink)', letterSpacing: '-0.03em', margin: 0 }}>
                         Calendario
                     </h1>
-                    <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+
+                    <div style={{ display: 'flex', gap: '10px', marginLeft: 'auto' }}>
+                        <button className="btn btn-ghost" onClick={handlePrintPdf} style={{ fontSize: '0.85rem' }}>
+                            📄 Guardar PDF
+                        </button>
+                        <button className="btn btn-primary" onClick={handleEmailAgenda} style={{ fontSize: '0.85rem' }}>
+                            ✉️ Enviar por Correo
+                        </button>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', width: '100%', justifyContent: 'flex-end', marginTop: '10px' }}>
                         <h3 style={{ fontFamily: "'JetBrains Mono', monospace", color: 'var(--ink-50)', fontSize: '1rem', margin: 0, fontWeight: '600', letterSpacing: '0.02em' }}>
                             {monthNames[currentMonth.getMonth()]} {currentMonth.getFullYear()}
                         </h3>

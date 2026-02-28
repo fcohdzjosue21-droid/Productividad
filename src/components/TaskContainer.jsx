@@ -29,6 +29,12 @@ const TaskContainer = ({ tasks, setTasks, selectedDate, syncStatus, setSyncStatu
     const [selectedIcon, setSelectedIcon] = useState('wind');
     const [reminderTime, setReminderTime] = useState('');
 
+    const [taskDate, setTaskDate] = useState(selectedDate || new Date().toISOString().split('T')[0]);
+
+    useEffect(() => {
+        if (selectedDate) setTaskDate(selectedDate);
+    }, [selectedDate]);
+
     // Filters MVP
     const [searchQuery, setSearchQuery] = useState('');
     const [filterCategory, setFilterCategory] = useState('Todas');
@@ -68,7 +74,7 @@ const TaskContainer = ({ tasks, setTasks, selectedDate, syncStatus, setSyncStatu
             isMainObjective,
             icon: selectedIcon,
             completed: false,
-            date: selectedDate || new Date().toISOString().split('T')[0],
+            date: taskDate,
             reminderTime: reminderTime || null,
             notified: false,
             user_id: user?.id
@@ -270,7 +276,17 @@ const TaskContainer = ({ tasks, setTasks, selectedDate, syncStatus, setSyncStatu
                     </div>
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--surface-2)', padding: '4px 12px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)' }}>
-                        <span style={{ fontSize: '0.8rem', color: 'var(--ink-50)', fontWeight: 500 }}>Recordatorio:</span>
+                        <span style={{ fontSize: '0.8rem', color: 'var(--ink-50)', fontWeight: 500 }} title="Fecha de la actividad">Fecha:</span>
+                        <input
+                            type="date"
+                            className="task-input"
+                            style={{ width: 'auto', margin: 0, padding: '4px', border: 'none', background: 'none', fontSize: '0.85rem' }}
+                            value={taskDate}
+                            onChange={(e) => setTaskDate(e.target.value)}
+                        />
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--surface-2)', padding: '4px 12px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)' }}>
+                        <span style={{ fontSize: '0.8rem', color: 'var(--ink-50)', fontWeight: 500 }} title="Hora recordatorio">Hora:</span>
                         <input
                             type="time"
                             className="task-input"

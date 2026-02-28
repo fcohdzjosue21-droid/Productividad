@@ -962,3 +962,75 @@ body {
     font-size: 0.9rem;
   }
 }
+
+/* ── Print Media (For PDF Export) ───────────────────────── */
+@media print {
+  @page {
+    size: A4 landscape;
+    margin: 1cm;
+  }
+
+  body {
+    background: #fff;
+    color: #000;
+  }
+
+  .bg-blobs,
+  .sidebar,
+  .mobile-nav,
+  .calendar-nav-btn,
+  .btn,
+  .notification-toast {
+    display: none !important;
+  }
+
+  .app-container {
+    box-shadow: none;
+    border: none;
+    width: 100%;
+    height: auto;
+    display: block;
+    margin: 0;
+    padding: 0;
+  }
+
+  .main-content {
+    background: #fff;
+    padding: 0;
+    overflow: visible;
+  }
+
+  .calendar-large {
+    height: auto;
+  }
+
+  .calendar-header h1 {
+    color: #000 !important;
+  }
+
+  .calendar-header h3 {
+    color: #333 !important;
+  }
+
+  .calendar-day-large {
+    border: 1px solid #ccc !important;
+    background: #fff !important;
+    color: #000 !important;
+    box-shadow: none !important;
+    break-inside: avoid;
+  }
+
+  .calendar-day-large.active {
+    border: 2px solid #000 !important;
+  }
+
+  .calendar-day-large .day-number {
+    color: #000 !important;
+  }
+
+  .mini-task-pill {
+    background: #f0f0f0 !important;
+    color: #000 !important;
+    border: 1px solid #ddd !important;
+  }
+}
