@@ -29,6 +29,7 @@ const TaskContainer = ({ tasks, setTasks, selectedDate, syncStatus, setSyncStatu
     const [isMainObjective, setIsMainObjective] = useState(false);
     const [selectedIcon, setSelectedIcon] = useState('wind');
     const [reminderTime, setReminderTime] = useState('');
+    const [estimatedTime, setEstimatedTime] = useState(''); // in minutes
 
     const [taskDate, setTaskDate] = useState(selectedDate || new Date().toISOString().split('T')[0]);
 
@@ -78,7 +79,8 @@ const TaskContainer = ({ tasks, setTasks, selectedDate, syncStatus, setSyncStatu
             date: taskDate,
             reminderTime: reminderTime || null,
             notified: false,
-            user_id: user?.id
+            user_id: user?.id,
+            duration: estimatedTime || null
         };
 
         try {
@@ -269,9 +271,9 @@ const TaskContainer = ({ tasks, setTasks, selectedDate, syncStatus, setSyncStatu
             <header style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '20px' }}>
                 <div style={{ flex: 1, minWidth: '250px' }}>
                     <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '2.2rem', fontWeight: '400', color: 'var(--ink)', letterSpacing: '-0.03em' }}>
-                        {selectedDate ? `Agenda del ${selectedDate.split('-').reverse().join('/')}` : 'Mi Agenda'}
+                        {selectedDate ? `Enfoque del ${selectedDate.split('-').reverse().join('/')}` : 'Mi Centro de Enfoque'}
                     </h1>
-                    <p style={{ color: 'var(--ink-50)', fontSize: '0.9rem', marginTop: '4px' }}>Organiza tus actividades con claridad.</p>
+                    <p style={{ color: 'var(--ink-50)', fontSize: '0.9rem', marginTop: '4px' }}>Optimiza tu tiempo y fluye con tus tareas.</p>
                 </div>
 
                 {/* Gamification Dashboard (Points, Level, Pet) */}
@@ -312,7 +314,7 @@ const TaskContainer = ({ tasks, setTasks, selectedDate, syncStatus, setSyncStatu
                 <input
                     type="text"
                     className="task-input"
-                    placeholder="Escribe algo que quieras realizar..."
+                    placeholder="¿Cuál es tu próximo gran avance?"
                     value={newTask}
                     onChange={(e) => setNewTask(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && addTask()}
@@ -349,6 +351,17 @@ const TaskContainer = ({ tasks, setTasks, selectedDate, syncStatus, setSyncStatu
                             style={{ width: 'auto', margin: 0, padding: '4px', border: 'none', background: 'none' }}
                             value={reminderTime}
                             onChange={(e) => setReminderTime(e.target.value)}
+                        />
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--surface-2)', padding: '4px 12px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)' }}>
+                        <span style={{ fontSize: '0.8rem', color: 'var(--ink-50)', fontWeight: 500 }} title="Estimación de tiempo (min)">Min:</span>
+                        <input
+                            type="number"
+                            placeholder="30"
+                            className="task-input"
+                            style={{ width: '50px', margin: 0, padding: '4px', border: 'none', background: 'none', fontSize: '0.85rem' }}
+                            value={estimatedTime}
+                            onChange={(e) => setEstimatedTime(e.target.value)}
                         />
                     </div>
                 </div>
@@ -455,9 +468,28 @@ const TaskContainer = ({ tasks, setTasks, selectedDate, syncStatus, setSyncStatu
                                                 </span>
                                             )}
                                             {task.isMainObjective && <span title="Objetivo Principal del Día" style={{ fontSize: '1rem' }}>👑</span>}
+                                            {task.duration && (
+                                                <span className="priority-tag" style={{ background: 'var(--accent)', color: '#fff', fontSize: '0.6rem' }}>
+                                                    ⏱️ {task.duration}m
+                                                </span>
+                                            )}
+                                            {task.duration >= 60 && (
+                                                <span className="priority-tag" style={{ background: 'rgba(0,0,0,0.3)', color: 'var(--ink-80)', fontSize: '0.6rem' }}>
+                                                    Deep Work
+                                                </span>
+                                            )}
                                             <span style={{ marginLeft: 'auto' }}>{task.date}</span>
                                         </div>
                                     </div>
+                                    <button
+                                        onClick={() => window.enterFocusMode && window.enterFocusMode(task.id)}
+                                        style={{ background: 'none', border: 'none', color: 'var(--ink-30)', cursor: 'pointer', padding: '10px', transition: 'color 0.2s' }}
+                                        title="Modo Enfoque"
+                                        onMouseEnter={(e) => e.currentTarget.style.color = 'var(--accent)'}
+                                        onMouseLeave={(e) => e.currentTarget.style.color = 'var(--ink-30)'}
+                                    >
+                                        <Sun size={20} />
+                                    </button>
                                     <button
                                         onClick={() => removeTask(task.id)}
                                         style={{ background: 'none', border: 'none', color: 'var(--ink-30)', cursor: 'pointer', padding: '10px', transition: 'color 0.2s' }}

@@ -30,44 +30,6 @@ const CalendarView = ({ tasks, selectedDate, setSelectedDate, large = false }) =
         window.print();
     };
 
-    const handleEmailAgenda = () => {
-        const currentMonthTasks = tasks.filter(t => {
-            const taskDate = new Date(t.date);
-            return taskDate.getMonth() === currentMonth.getMonth() && taskDate.getFullYear() === currentMonth.getFullYear();
-        });
-
-        if (currentMonthTasks.length === 0) {
-            alert('No hay tareas este mes para enviar.');
-            return;
-        }
-
-        let emailBody = `Hola,\n\nAquí está tu agenda para ${monthNames[currentMonth.getMonth()]} ${currentMonth.getFullYear()}:\n\n`;
-
-        // Group by date
-        const grouped = {};
-        currentMonthTasks.forEach(t => {
-            if (!grouped[t.date]) grouped[t.date] = [];
-            grouped[t.date].push(t);
-        });
-
-        Object.keys(grouped).sort().forEach(date => {
-            emailBody += `--- ${date.split('-').reverse().join('/')} ---\n`;
-            grouped[date].forEach(t => {
-                const status = t.completed ? '[x]' : '[ ]';
-                const time = t.reminderTime ? `(${t.reminderTime})` : '';
-                emailBody += `${status} ${t.text} ${time} - Prioridad: ${t.urgency}\n`;
-            });
-            emailBody += `\n`;
-        });
-
-        emailBody += `\n¡Que tengas un excelente mes!\nGenerado desde ZenFlow.`;
-
-        const subject = encodeURIComponent(`Mi Agenda ZenFlow - ${monthNames[currentMonth.getMonth()]}`);
-        const body = encodeURIComponent(emailBody);
-
-        window.location.href = `mailto:?subject=${subject}&body=${body}`;
-    };
-
     if (large) {
         return (
             <div className="calendar-large">
@@ -77,11 +39,8 @@ const CalendarView = ({ tasks, selectedDate, setSelectedDate, large = false }) =
                     </h1>
 
                     <div style={{ display: 'flex', gap: '10px', marginLeft: 'auto' }}>
-                        <button className="btn btn-ghost" onClick={handlePrintPdf} style={{ fontSize: '0.85rem' }}>
-                            📄 Guardar PDF
-                        </button>
-                        <button className="btn btn-primary" onClick={handleEmailAgenda} style={{ fontSize: '0.85rem' }}>
-                            ✉️ Enviar por Correo
+                        <button className="btn btn-primary" onClick={handlePrintPdf} style={{ fontSize: '0.85rem' }}>
+                            📄 Imprimir Agenda
                         </button>
                     </div>
 

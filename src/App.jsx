@@ -19,6 +19,14 @@ function App() {
   const [activeNotification, setActiveNotification] = useState(null);
   const [user, setUser] = useState(null);
   const [theme, setTheme] = useState(() => localStorage.getItem('zen-theme') || 'zen');
+  const [focusTask, setFocusTask] = useState(null);
+
+  useEffect(() => {
+    window.enterFocusMode = (id) => {
+      const task = tasks.find(t => t.id === id);
+      if (task) setFocusTask(task);
+    };
+  }, [tasks]);
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
@@ -375,6 +383,41 @@ function App() {
         message={activeNotification}
         onClose={() => setActiveNotification(null)}
       />
+
+      {focusTask && (
+        <div className="focus-overlay">
+          <div className="focus-exit-btn" onClick={() => setFocusTask(null)}>
+            <LogOut size={32} />
+          </div>
+          <div className="focus-task-card">
+            <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '3rem', marginBottom: '1rem' }}>
+              Enfoque Total
+            </h2>
+            <p style={{ color: 'var(--ink-50)', marginBottom: '2rem', fontSize: '1.2rem' }}>
+              Sin distracciones. Solo tú y tu próxima meta.
+            </p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '20px', justifyContent: 'center', background: 'var(--surface-2)', padding: '2rem', borderRadius: 'var(--radius-lg)' }}>
+              <CheckCircle size={40} color="var(--accent)" />
+              <span style={{ fontSize: '2rem', fontWeight: 600 }}>{focusTask.text}</span>
+            </div>
+
+            <div style={{ marginTop: '3rem' }}>
+              <PomodoroTimer />
+            </div>
+            <button
+              className="btn btn-primary"
+              style={{ marginTop: '2rem' }}
+              onClick={() => {
+                const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3');
+                audio.play();
+                setFocusTask(null);
+              }}
+            >
+              Finalizar Sesión de Enfoque
+            </button>
+          </div>
+        </div>
+      )}
     </>
   );
 }
