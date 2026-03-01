@@ -163,6 +163,12 @@
 }
 
 /* ── Background — animated linen paper texture ───────────── */
+html,
+body,
+#root {
+  height: 100%;
+}
+
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   background-color: var(--bg);
@@ -170,11 +176,11 @@ body {
     radial-gradient(circle at 20% 20%, rgba(0, 0, 0, 0.025) 0%, transparent 60%),
     radial-gradient(circle at 80% 80%, rgba(0, 0, 0, 0.025) 0%, transparent 60%);
   color: var(--ink);
-  min-height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
-  overflow-x: hidden;
+  overflow: hidden;
+  /* Prevent body scroll, we want app scroll */
 }
 
 /* ── Animated Background Lines (grid paper feel) ────────── */
@@ -401,6 +407,8 @@ body {
   overflow-y: auto;
   background: var(--bg);
   position: relative;
+  -webkit-overflow-scrolling: touch;
+  /* Smooth scroll for iOS */
 }
 
 .main-content::-webkit-scrollbar {
@@ -986,7 +994,8 @@ body {
   .app-container {
     grid-template-columns: 1fr;
     grid-template-rows: 1fr 65px;
-    height: 100vh;
+    height: 100%;
+    /* Changed from 100vh */
     border-radius: 0;
     width: 100vw;
   }
@@ -1148,10 +1157,13 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 2rem;
+  justify-content: flex-start;
+  /* Changed from center to allow scrolling from top */
+  padding: 4rem 2rem;
   text-align: center;
   animation: fadeIn 0.5s ease-out;
+  overflow-y: auto;
+  /* Enable scroll if content is long */
 }
 
 .focus-task-card {

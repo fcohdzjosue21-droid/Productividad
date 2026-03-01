@@ -328,7 +328,7 @@ function App() {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.4 }}
-                style={{ height: '100%' }}
+                style={{ minHeight: '100%', display: 'flex', flexDirection: 'column' }}
               >
                 {loading ? (
                   <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>

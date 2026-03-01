@@ -31,7 +31,7 @@ const StatsView = ({ tasks }) => {
     }, [tasks]);
 
     return (
-        <div style={{ padding: '20px', height: '100%', overflowY: 'auto' }}>
+        <div style={{ padding: '20px' }}>
             <h1 className="page-title">Estadísticas <em>Zen</em></h1>
             <p className="page-subtitle">Tu camino hacia la productividad consciente.</p>
 
