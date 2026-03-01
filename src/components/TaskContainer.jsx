@@ -22,6 +22,7 @@ const icons = [
 const categoriesList = ['General', 'Estudio', 'Trabajo', 'Personal', 'Salud'];
 
 const TaskContainer = ({ tasks, setTasks, selectedDate, syncStatus, setSyncStatus, user }) => {
+    const [subtasks, setSubtasks] = useState({}); // {taskId: [subtasks]}
     const [newTask, setNewTask] = useState('');
     const [urgency, setUrgency] = useState('low');
     const [category, setCategory] = useState('General');
@@ -99,6 +100,61 @@ const TaskContainer = ({ tasks, setTasks, selectedDate, syncStatus, setSyncStatu
             setSyncStatus('error');
         }
     };
+
+    const fetchSubtasks = async (taskId) => {
+        try {
+            const { data, error } = await supabase
+                .from('subtasks')
+                .select('*')
+                .eq('task_id', taskId);
+            if (error) throw error;
+            setSubtasks(prev => ({ ...prev, [taskId]: data }));
+        } catch (e) {
+            console.error("Error fetching subtasks:", e);
+        }
+    };
+
+    const addSubtask = async (taskId, text) => {
+        if (!text.trim()) return;
+        try {
+            const newSubtask = { task_id: taskId, text, completed: false };
+            const { data, error } = await supabase
+                .from('subtasks')
+                .insert([newSubtask])
+                .select();
+            if (error) throw error;
+            setSubtasks(prev => ({
+                ...prev,
+                [taskId]: [...(prev[taskId] || []), data[0]]
+            }));
+        } catch (e) {
+            console.error("Error adding subtask:", e);
+        }
+    };
+
+    const toggleSubtask = async (taskId, subtaskId, completed) => {
+        try {
+            const { error } = await supabase
+                .from('subtasks')
+                .update({ completed: !completed })
+                .eq('id', subtaskId);
+            if (error) throw error;
+            setSubtasks(prev => ({
+                ...prev,
+                [taskId]: prev[taskId].map(st => st.id === subtaskId ? { ...st, completed: !completed } : st)
+            }));
+        } catch (e) {
+            console.error("Error toggling subtask:", e);
+        }
+    };
+
+    useEffect(() => {
+        if (tasks.length > 0) {
+            tasks.forEach(task => {
+                if (!subtasks[task.id]) fetchSubtasks(task.id);
+            });
+        }
+    }, [tasks]);
 
     const removeTask = async (id) => {
         setSyncStatus('syncing');
@@ -370,15 +426,16 @@ const TaskContainer = ({ tasks, setTasks, selectedDate, syncStatus, setSyncStatu
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, scale: 0.9 }}
                                 className={`task-card urgency-${task.urgency} ${task.urgency === 'high' && !task.completed ? 'pulse-slow' : ''}`}
+                                style={{ flexDirection: 'column', alignItems: 'stretch' }}
                             >
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '15px', flex: 1 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '15px', width: '100%' }}>
                                     <CheckCircle
                                         size={28}
                                         color={task.completed ? 'var(--ink-30)' : 'var(--ink)'}
                                         style={{ cursor: 'pointer', flexShrink: 0 }}
                                         onClick={() => toggleComplete(task.id)}
                                     />
-                                    <div>
+                                    <div style={{ flex: 1 }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                                             <TaskIcon size={18} color="var(--ink-30)" />
                                             <span style={{
@@ -401,15 +458,43 @@ const TaskContainer = ({ tasks, setTasks, selectedDate, syncStatus, setSyncStatu
                                             <span style={{ marginLeft: 'auto' }}>{task.date}</span>
                                         </div>
                                     </div>
+                                    <button
+                                        onClick={() => removeTask(task.id)}
+                                        style={{ background: 'none', border: 'none', color: 'var(--ink-30)', cursor: 'pointer', padding: '10px', transition: 'color 0.2s' }}
+                                        onMouseEnter={(e) => e.currentTarget.style.color = 'var(--ink)'}
+                                        onMouseLeave={(e) => e.currentTarget.style.color = 'var(--ink-30)'}
+                                    >
+                                        <Trash2 size={20} />
+                                    </button>
                                 </div>
-                                <button
-                                    onClick={() => removeTask(task.id)}
-                                    style={{ background: 'none', border: 'none', color: 'var(--ink-30)', cursor: 'pointer', padding: '10px', transition: 'color 0.2s' }}
-                                    onMouseEnter={(e) => e.currentTarget.style.color = 'var(--ink)'}
-                                    onMouseLeave={(e) => e.currentTarget.style.color = 'var(--ink-30)'}
-                                >
-                                    <Trash2 size={20} />
-                                </button>
+
+                                {/* Subtasks UI */}
+                                <div style={{ marginTop: '15px', paddingLeft: '43px', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '10px' }}>
+                                    {subtasks[task.id]?.map(st => (
+                                        <div key={st.id} className="subtask-item">
+                                            <input
+                                                type="checkbox"
+                                                checked={st.completed}
+                                                onChange={() => toggleSubtask(task.id, st.id, st.completed)}
+                                                style={{ cursor: 'pointer' }}
+                                            />
+                                            <span className={`subtask-text ${st.completed ? 'completed' : ''}`}>
+                                                {st.text}
+                                            </span>
+                                        </div>
+                                    ))}
+                                    <input
+                                        type="text"
+                                        placeholder="+ Añadir subtarea..."
+                                        className="subtask-input"
+                                        onKeyPress={(e) => {
+                                            if (e.key === 'Enter') {
+                                                addSubtask(task.id, e.target.value);
+                                                e.target.value = '';
+                                            }
+                                        }}
+                                    />
+                                </div>
                             </motion.div>
                         );
                     })}

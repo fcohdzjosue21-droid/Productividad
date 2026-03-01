@@ -3,9 +3,11 @@ import TaskContainer from './components/TaskContainer';
 import CalendarView from './components/CalendarView';
 import Auth from './components/Auth';
 import NotificationToast from './components/NotificationToast';
+import PomodoroTimer from './components/PomodoroTimer';
+import StatsView from './components/StatsView';
 import { supabase } from './lib/supabaseClient';
 import './styles/ZenStyles.css';
-import { BookOpen, LayoutList, Calendar as CalendarIcon, CloudSync, CloudOff, LogOut, Bell, RefreshCw } from 'lucide-react';
+import { BookOpen, LayoutList, Calendar as CalendarIcon, CloudSync, CloudOff, LogOut, Bell, RefreshCw, Palette, BarChart2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 function App() {
@@ -16,6 +18,12 @@ function App() {
   const [activeView, setActiveView] = useState('tasks'); // 'tasks' or 'calendar'
   const [activeNotification, setActiveNotification] = useState(null);
   const [user, setUser] = useState(null);
+  const [theme, setTheme] = useState(() => localStorage.getItem('zen-theme') || 'zen');
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('zen-theme', theme);
+  }, [theme]);
 
   // Phase 1: Mood & Daily Quote
   const dailyPhrases = [
@@ -217,10 +225,55 @@ function App() {
               >
                 <CalendarIcon size={18} /> Calendario
               </div>
+              <div
+                className={`nav-link ${activeView === 'stats' ? 'active' : ''}`}
+                onClick={() => setActiveView('stats')}
+              >
+                <BarChart2 size={18} /> Estadísticas
+              </div>
             </nav>
+
+            {/* Pomodoro Timer */}
+            <div style={{ padding: '0 0 1.5rem 0' }}>
+              <PomodoroTimer />
+            </div>
 
             {/* Footer */}
             <div className="sidebar-footer">
+              <div style={{ display: 'flex', gap: '5px', marginBottom: '5px' }}>
+                <button
+                  onClick={() => setTheme('zen')}
+                  className={`btn btn-ghost ${theme === 'zen' ? 'active' : ''}`}
+                  style={{ flex: 1, padding: '5px', fontSize: '0.7rem' }}
+                  title="Tema Zen"
+                >
+                  Zen
+                </button>
+                <button
+                  onClick={() => setTheme('forest')}
+                  className={`btn btn-ghost ${theme === 'forest' ? 'active' : ''}`}
+                  style={{ flex: 1, padding: '5px', fontSize: '0.7rem' }}
+                  title="Tema Bosque"
+                >
+                  Bosque
+                </button>
+                <button
+                  onClick={() => setTheme('sunset')}
+                  className={`btn btn-ghost ${theme === 'sunset' ? 'active' : ''}`}
+                  style={{ flex: 1, padding: '5px', fontSize: '0.7rem' }}
+                  title="Tema Atardecer"
+                >
+                  Ocaso
+                </button>
+                <button
+                  onClick={() => setTheme('deep-night')}
+                  className={`btn btn-ghost ${theme === 'deep-night' ? 'active' : ''}`}
+                  style={{ flex: 1, padding: '5px', fontSize: '0.7rem' }}
+                  title="Tema Noche"
+                >
+                  Noche
+                </button>
+              </div>
               <button
                 onClick={requestPermission}
                 className="btn btn-ghost"
@@ -282,8 +335,10 @@ function App() {
                     setSyncStatus={setSyncStatus}
                     user={user}
                   />
-                ) : (
+                ) : activeView === 'calendar' ? (
                   <CalendarView tasks={tasks} selectedDate={selectedDate} setSelectedDate={setSelectedDate} large={true} />
+                ) : (
+                  <StatsView tasks={tasks} />
                 )}
               </motion.div>
             </AnimatePresence>
@@ -304,6 +359,13 @@ function App() {
             >
               <CalendarIcon size={22} />
               <span>Calendario</span>
+            </div>
+            <div
+              className={`mobile-nav-item ${activeView === 'stats' ? 'active' : ''}`}
+              onClick={() => setActiveView('stats')}
+            >
+              <BarChart2 size={22} />
+              <span>Stats</span>
             </div>
           </nav>
         </div>

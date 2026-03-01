@@ -52,6 +52,105 @@
   --radius-lg: 20px;
   --radius-xl: 28px;
   --transition: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Theme: Zen (Default) */
+  --theme-primary: var(--ink);
+  --theme-accent: var(--accent);
+}
+
+/* ── Themes ─────────────────────────────────────────────── */
+[data-theme='forest'] {
+  --bg: #061611;
+  --surface: #0a261e;
+  --surface-2: #123d32;
+  --border: #164a3d;
+  --ink: #ecfdf5;
+  --ink-80: #d1fae5;
+  --ink-50: #6ee7b7;
+  --ink-30: #10b981;
+  --accent: #10b981;
+}
+
+[data-theme='sunset'] {
+  --bg: #1a0b16;
+  --surface: #2d1226;
+  --surface-2: #451b3b;
+  --border: #5e2450;
+  --ink: #fff1f2;
+  --ink-80: #ffe4e6;
+  --ink-50: #fda4af;
+  --ink-30: #f43f5e;
+  --accent: #f43f5e;
+}
+
+[data-theme='deep-night'] {
+  --bg: #000000;
+  --surface: #0a0a0a;
+  --surface-2: #141414;
+  --border: #1f1f1f;
+  --ink: #ffffff;
+  --ink-80: #e5e5e5;
+  --ink-50: #a3a3a3;
+  --ink-30: #525252;
+  --accent: #ffffff;
+}
+
+/* ── Subtasks ────────────────────────────────────────────── */
+.subtask-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.subtask-item:last-child {
+  border-bottom: none;
+}
+
+.subtask-text {
+  font-size: 0.85rem;
+  color: var(--ink-80);
+  flex: 1;
+}
+
+.subtask-text.completed {
+  text-decoration: line-through;
+  color: var(--ink-30);
+}
+
+.subtask-input {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  color: var(--ink);
+  font-size: 0.8rem;
+  padding: 4px 0;
+  width: 100%;
+  outline: none;
+}
+
+/* ── Pomodoro ────────────────────────────────────────────── */
+.pomodoro-container {
+  background: var(--surface-2);
+  padding: 15px;
+  border-radius: var(--radius-md);
+  text-align: center;
+  border: 1px solid var(--border);
+}
+
+.pomodoro-timer {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 10px 0;
+  color: var(--accent);
+}
+
+.pomodoro-controls {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
 }
 
 /* ── Reset ───────────────────────────────────────────────── */
