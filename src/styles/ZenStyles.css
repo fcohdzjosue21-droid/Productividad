@@ -58,6 +58,19 @@
   --theme-accent: var(--accent);
 }
 
+.task-creation-container {
+  background: var(--surface-2);
+  padding: 24px;
+  border-radius: var(--radius-xl);
+  margin-bottom: 2.5rem;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-create-task {
+  margin-left: auto;
+}
+
 /* ── Themes ─────────────────────────────────────────────── */
 [data-theme='forest'] {
   --bg: #061611;
@@ -1081,6 +1094,29 @@ body {
 
   .calendar-large .calendar-header h3 {
     font-size: 0.9rem;
+  }
+
+  /* Task Creation Responsive */
+  .task-creation-container {
+    padding: 16px !important;
+  }
+
+  .task-controls-row {
+    flex-direction: column;
+    align-items: stretch !important;
+  }
+
+  .task-controls-row select,
+  .task-controls-row input {
+    width: 100% !important;
+  }
+
+  .btn-create-task {
+    width: 100%;
+    margin-left: 0 !important;
+    margin-top: 10px;
+    justify-content: center;
+    padding: 14px !important;
   }
 }
 

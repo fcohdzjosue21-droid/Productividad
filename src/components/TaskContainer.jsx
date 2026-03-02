@@ -252,15 +252,26 @@ const TaskContainer = ({ tasks, setTasks, selectedDate, syncStatus, setSyncStatu
 
     // Virtual Pet State Logic
     const getPetEmoji = () => {
-        if (streak >= 3) return '🔥🦊'; // On fire!
-        if (progressPercent === 100) return '🎉🦊'; // Happy!
-        if (progressPercent > 50) return '🦊'; // Neutral active
-        if (totalCount === 0) return '💤🦊'; // Sleeping / no tasks
-        return '🥺🦊'; // Needs attention
+        if (streak >= 3) return '🔥🦊';
+        if (progressPercent === 100) {
+            if (currentLevel >= 10) return '👑🐺';
+            if (currentLevel >= 5) return '🎉🐺';
+            return '🎉🦊';
+        }
+        if (currentLevel >= 10) return '👑🐺';
+        if (currentLevel >= 5) return '🐺';
+        if (progressPercent > 50) return currentLevel >= 3 ? '🦊✨' : '🦊';
+        if (totalCount === 0) return '💤🦊';
+        return '🥺🦊';
     };
     const getPetMessage = () => {
         if (streak >= 3) return `¡Estás imparable! Racha de ${streak} días.`;
-        if (progressPercent === 100) return '¡Día perfecto, buen trabajo!';
+        if (progressPercent === 100) {
+            if (currentLevel >= 10) return '¡Dominio total, Gran Maestro!';
+            if (currentLevel >= 5) return '¡Asombroso! Tu voluntad es de acero.';
+            return '¡Día perfecto, buen trabajo!';
+        }
+        if (currentLevel >= 5) return '¡Sigue así, el lobo interior despierta!';
         if (progressPercent > 50) return '¡Ya casi lo logramos!';
         if (totalCount === 0) return 'No hay planes para hoy. A descansar...';
         return '¡Vamos, tú puedes con esto!';
@@ -310,17 +321,19 @@ const TaskContainer = ({ tasks, setTasks, selectedDate, syncStatus, setSyncStatu
                 )}
             </div>
 
-            <div className="input-section" style={{ background: 'var(--surface)', padding: '1.5rem', borderRadius: 'var(--radius-lg)', marginBottom: '2rem', border: '1px solid var(--border)', boxShadow: 'var(--shadow-xs)' }}>
-                <input
-                    type="text"
-                    className="task-input"
-                    placeholder="¿Cuál es tu próximo gran avance?"
-                    value={newTask}
-                    onChange={(e) => setNewTask(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && addTask()}
-                />
+            <div className="task-creation-container">
+                <div style={{ position: 'relative', marginBottom: '1.2rem' }}>
+                    <input
+                        type="text"
+                        className="task-input"
+                        placeholder="¿Cuál es tu próximo gran avance?"
+                        value={newTask}
+                        onChange={(e) => setNewTask(e.target.value)}
+                        onKeyPress={(e) => e.key === 'Enter' && addTask()}
+                    />
+                </div>
 
-                <div style={{ display: 'flex', gap: '15px', marginBottom: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                <div className="task-controls-row" style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '1.2rem' }}>
                     <div className="icon-picker" style={{ margin: 0 }}>
                         {icons.map(({ id, Icon }) => (
                             <div
@@ -366,7 +379,7 @@ const TaskContainer = ({ tasks, setTasks, selectedDate, syncStatus, setSyncStatu
                     </div>
                 </div>
 
-                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                <div className="task-controls-row" style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                     <select value={category} onChange={e => setCategory(e.target.value)} className="task-input" style={{ width: 'auto', marginBottom: 0 }}>
                         {categoriesList.map(c => <option key={c} value={c}>{c}</option>)}
                     </select>
@@ -390,7 +403,7 @@ const TaskContainer = ({ tasks, setTasks, selectedDate, syncStatus, setSyncStatu
                         <option value="medium">Prioridad: Media</option>
                         <option value="high">Prioridad: Alta</option>
                     </select>
-                    <button className="btn btn-primary" onClick={addTask} style={{ marginLeft: 'auto' }}>
+                    <button className="btn btn-primary btn-create-task" onClick={addTask}>
                         <Plus size={20} /> Crear Actividad
                     </button>
                 </div>
