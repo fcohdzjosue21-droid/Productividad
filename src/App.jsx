@@ -7,7 +7,7 @@ import PomodoroTimer from './components/PomodoroTimer';
 import StatsView from './components/StatsView';
 import { supabase } from './lib/supabaseClient';
 import './styles/ZenStyles.css';
-import { BookOpen, LayoutList, Calendar as CalendarIcon, CloudSync, CloudOff, LogOut, Bell, RefreshCw, Palette, BarChart2 } from 'lucide-react';
+import { BookOpen, LayoutList, Calendar as CalendarIcon, CloudSync, CloudOff, LogOut, Bell, RefreshCw, Palette, BarChart2, CheckCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 function App() {
@@ -106,6 +106,8 @@ function App() {
     fetchTasks();
     // Expose for retry
     window.refreshZenTasks = fetchTasks;
+
+    if (!user) return;
 
     // Phase 4: Supabase Realtime Sync
     const channel = supabase
