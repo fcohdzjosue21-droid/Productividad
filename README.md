@@ -1,16 +1,58 @@
-# React + Vite
+# 🌿 ZenFlow - Tu Sistema de Productividad Zen
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+![ZenFlow Mascot](https://img.shields.io/badge/Mascota-Evolutiva-orange)
+![Resend Notifications](https://img.shields.io/badge/Notificaciones-Email-blue)
+![Vite + React](https://img.shields.io/badge/Built%20with-Vite%20%2B%20React-blueviolet)
 
-Currently, two official plugins are available:
+**ZenFlow** es una aplicación de gestión de tareas diseñada para transformar la productividad en una experiencia fluida, estética y gamificada. Olvida las listas de tareas aburridas; con ZenFlow, cada actividad completada es un paso más en la evolución de tu cuenta y de tu mascota virtual.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## ✨ Características Principales
 
-## React Compiler
+### 🐺 Sistema de Gamificación (Mascota Virtual)
+Tu productividad tiene cara. Al completar tareas, ganas puntos que hacen evolucionar a tu mascota:
+- **Nivel 1-2**: Un curioso Zorro (`🦊`)
+- **Nivel 3-4**: Zorro con destellos (`🦊✨`)
+- **Nivel 5-9**: Transformación a Lobo (`🐺`)
+- **Nivel 10+**: Lobo Real (`👑🐺`) (Estatus Legendario)
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### 📧 Recordatorios por Gmail (Integración con Resend)
+No pierdas el rastro de tus objetivos. ZenFlow utiliza **Supabase Edge Functions** junto con **Resend** para enviarte notificaciones automáticas directamente a tu correo cuando llegue la hora de una tarea programada.
 
-## Expanding the ESLint configuration
+### ⏱️ Enfoque Profundo (Pomodoro & Zen)
+- **Temporizador Pomodoro**: Integrado directamente para sesiones de trabajo concentrado.
+- **Diseño Estético**: Una interfaz minimalista con tipografía moderna, efectos de vidrio (glassmorphism) y animaciones suaves para reducir el estrés visual.
+- **Modo Oscuro Premium**: Paleta de colores cuidada para trabajar a cualquier hora.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### 📊 Organización y Visualización
+- **Vista de Calendario**: Planifica tus días de forma visual.
+- **Estadísticas**: Gráficos de barras para analizar tu progreso semanal y picos de actividad.
+- **Categorías e Iconos**: Personaliza tus tareas con una amplia gama de iconos y niveles de urgencia.
+
+### 📱 Experiencia Móvil & PWA
+Totalmente responsiva. Incluye soporte para **PWA (Progressive Web App)**, permitiéndote instalar ZenFlow en tu dispositivo móvil como una aplicación nativa.
+
+## 🛠️ Tecnologías Utilizadas
+
+- **Frontend**: React, Vite, Framer Motion (animaciones), Lucide React (iconos).
+- **Backend/Base de Datos**: Supabase (PostgreSQL, Edge Functions, Auth).
+- **Notificaciones**: Resend API.
+- **Estilos**: Vanilla CSS con diseño adaptativo.
+
+## 🚀 Instalación y Desarrollo
+
+1. Clona el repositorio.
+2. Instala las dependencias:
+   ```bash
+   npm install
+   ```
+3. Configura tus variables de entorno en un archivo `.env`:
+   - `VITE_SUPABASE_URL`
+   - `VITE_SUPABASE_ANON_KEY`
+4. Inicia el servidor de desarrollo:
+   ```bash
+   npm run dev
+   ```
+
+---
+
+*Creado para fluir, diseñado para cumplir.* 🌊
