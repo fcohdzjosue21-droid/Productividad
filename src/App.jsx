@@ -106,6 +106,37 @@ function App() {
     fetchTasks();
     // Expose for retry
     window.refreshZenTasks = fetchTasks;
+
+    // Phase 4: Supabase Realtime Sync
+    const channel = supabase
+      .channel('tasks-db-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'tasks',
+          filter: `user_id=eq.${user.id}`
+        },
+        (payload) => {
+          console.log('Realtime change received:', payload);
+          if (payload.eventType === 'INSERT') {
+            setTasks(prev => {
+              if (prev.find(t => t.id === payload.new.id)) return prev;
+              return [payload.new, ...prev];
+            });
+          } else if (payload.eventType === 'UPDATE') {
+            setTasks(prev => prev.map(t => t.id === payload.new.id ? payload.new : t));
+          } else if (payload.eventType === 'DELETE') {
+            setTasks(prev => prev.filter(t => t.id === payload.old.id));
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user]);
 
   // Save to LocalStorage as fallback
